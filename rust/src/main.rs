@@ -1,3 +1,5 @@
+mod armstrong_number;
+
 fn main() {
-    println!("Hello, world!");
+    armstrong_number::check();
 }
