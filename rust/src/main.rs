@@ -1,5 +1,5 @@
 mod armstrong_number;
 
 fn main() {
-    armstrong_number::check(153);
+    dbg!(armstrong_number::check(153));
 }

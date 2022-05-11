@@ -1,9 +1,16 @@
-pub fn check(number: u32) {
-    let digits: Vec<_> = number
+pub fn check(number: u32) -> bool {
+    let chars: Vec<_> = number
         .to_string()
         .chars()
-        .map(|char| char.to_digit(10).unwrap())
         .collect();
 
-    dbg!(digits);
+    let pow = chars.len();
+
+    let digits: Vec<_> = chars.iter()
+        .map(| char| char.to_digit(10).unwrap().pow(pow as u32))
+        .collect();
+
+    let sum: u32 = digits.iter().sum();
+
+    sum == number
 }
