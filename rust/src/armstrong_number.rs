@@ -1,16 +1,11 @@
-pub fn check(number: u32) -> bool {
-    let chars: Vec<_> = number
-        .to_string()
+pub fn is_armstrong_number(num: u32) -> bool {
+    let string = num.to_string();
+    let pow = string.len() as u32;
+
+    let sum: u32 = string
         .chars()
-        .collect();
+        .map(|char| char.to_digit(10).unwrap().pow(pow))
+        .sum();
 
-    let pow = chars.len();
-
-    let digits: Vec<_> = chars.iter()
-        .map(| char| char.to_digit(10).unwrap().pow(pow as u32))
-        .collect();
-
-    let sum: u32 = digits.iter().sum();
-
-    sum == number
+    sum == num
 }
