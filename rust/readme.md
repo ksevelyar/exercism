@@ -1,1 +1,3 @@
 # Exercism
+
+exercism + rust-analyzer
