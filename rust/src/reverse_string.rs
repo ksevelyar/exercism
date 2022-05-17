@@ -1,3 +1,3 @@
 pub fn reverse(input: &str) -> String {
-  input.to_string().chars().rev().collect()
+    input.to_string().chars().rev().collect()
 }
