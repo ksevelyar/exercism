@@ -1,5 +1,5 @@
-mod beer_song;
+mod grains;
 
 fn main() {
-    dbg!(beer_song::sing(3, 0));
+    dbg!(grains::total());
 }
