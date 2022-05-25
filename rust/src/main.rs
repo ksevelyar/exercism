@@ -1,5 +1,3 @@
-mod nth_prime;
+mod health_statistics;
 
-fn main() {
-    dbg!(nth_prime::nth(5));
-}
+fn main() {}
