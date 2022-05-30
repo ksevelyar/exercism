@@ -1,10 +1,11 @@
 mod matching_brackets;
-mod raindrops;
+mod proverb;
 
 fn main() {
     dbg!(matching_brackets::brackets_are_balanced("([][])"));
     dbg!(matching_brackets::brackets_are_balanced("(}{)"));
 
-    dbg!(raindrops::raindrops(30));
-    dbg!(raindrops::raindrops(34));
+    dbg!(proverb::build_proverb(&[
+        "nail", "shoe", "horse", "rider", "message", "battle", "kingdom"
+    ]));
 }
