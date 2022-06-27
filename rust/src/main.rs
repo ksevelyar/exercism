@@ -1,5 +1,5 @@
-mod prime_factors;
+mod collatz_conjecture;
 
 fn main() {
-    dbg!(prime_factors::factors(9));
+    dbg!(collatz_conjecture::collatz(12));
 }
