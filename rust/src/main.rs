@@ -1,5 +1,5 @@
-mod collatz_conjecture;
+mod series;
 
 fn main() {
-    dbg!(collatz_conjecture::collatz(12));
+    dbg!(series::series("92017", 2));
 }
