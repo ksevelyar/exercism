@@ -1,5 +1,5 @@
-mod series;
+mod diffie_hellman;
 
 fn main() {
-    dbg!(series::series("92017", 2));
+    dbg!(diffie_hellman::modular_exponentiation(5u64, 6u64, 23u64));
 }
