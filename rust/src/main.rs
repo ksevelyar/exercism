@@ -1,5 +1,5 @@
 mod diffie_hellman;
 
 fn main() {
-    dbg!(diffie_hellman::modular_exponentiation(5u64, 6u64, 23u64));
+    dbg!(diffie_hellman::secret(4_294_967_927, 843, 4_294_967_300));
 }
