@@ -1,5 +1,8 @@
-mod diffie_hellman;
+mod high_scores;
+use high_scores::HighScores;
 
 fn main() {
-    dbg!(diffie_hellman::secret(4_294_967_927, 843, 4_294_967_300));
+    let high_scores = HighScores::new(&[10, 30, 90, 30, 100, 20, 10, 0, 30, 40, 40, 70, 70]);
+
+    assert_eq!(high_scores.personal_top_three(), vec![100, 90, 70]);
 }
