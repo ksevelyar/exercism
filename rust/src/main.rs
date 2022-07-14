@@ -1,5 +1,5 @@
 mod medium;
 
 fn main() {
-  medium::sublist::greet();
+    dbg!(medium::sublist::sublist(&[1, 2, 3], &[1, 2, 3, 4, 5]));
 }
