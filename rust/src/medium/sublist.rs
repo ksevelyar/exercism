@@ -7,7 +7,15 @@ pub enum Comparison {
 }
 
 fn is_equal<T: PartialEq>(first_list: &[T], second_list: &[T]) -> Comparison {
-    Comparison::Equal
+    let is_equal_bool = first_list
+        .iter()
+        .zip(second_list)
+        .all(|(first_list_item, second_list_item)| first_list_item == second_list_item);
+
+    match is_equal_bool {
+        true => Comparison::Equal,
+        false => Comparison::Unequal,
+    }
 }
 
 fn is_superlist<T: PartialEq>(first_list: &[T], second_list: &[T]) -> Comparison {
