@@ -6,30 +6,61 @@ pub enum Comparison {
     Unequal,
 }
 
-fn is_equal<T: PartialEq>(first_list: &[T], second_list: &[T]) -> Comparison {
-    let is_equal_bool = first_list
+fn is_equal<T: PartialEq>(first_list: &[T], second_list: &[T]) -> bool {
+    first_list
         .iter()
         .zip(second_list)
-        .all(|(first_list_item, second_list_item)| first_list_item == second_list_item);
+        .all(|(first_list_item, second_list_item)| first_list_item == second_list_item)
+}
 
-    match is_equal_bool {
+fn is_sublist<T: PartialEq>(first_list: &[T], second_list: &[T]) -> bool {
+    let iterations = first_list.len() - second_list.len() + 1;
+
+    first_list
+        .iter()
+        .take(iterations)
+        .enumerate()
+        .any(|(index, item)| {
+            item == &second_list[0] && is_equal(&first_list[index..=second_list.len()], second_list)
+        })
+}
+
+fn equality_comparison<T: PartialEq>(first_list: &[T], second_list: &[T]) -> Comparison {
+    match is_equal(first_list, second_list) {
         true => Comparison::Equal,
         false => Comparison::Unequal,
     }
 }
 
-fn is_superlist<T: PartialEq>(first_list: &[T], second_list: &[T]) -> Comparison {
-    Comparison::Superlist
+fn superlist_comparison<T: PartialEq>(first_list: &[T], second_list: &[T]) -> Comparison {
+    if second_list.len() == 0 {
+        return Comparison::Superlist;
+    }
+
+    match is_sublist(first_list, second_list) {
+        true => Comparison::Superlist,
+        false => Comparison::Unequal,
+    }
 }
 
-fn is_sublist<T: PartialEq>(first_list: &[T], second_list: &[T]) -> Comparison {
-    Comparison::Sublist
+fn sublist_comparison<T: PartialEq>(first_list: &[T], second_list: &[T]) -> Comparison {
+    if first_list.len() == 0 {
+        return Comparison::Sublist;
+    }
+
+    match is_sublist(second_list, first_list) {
+        true => Comparison::Sublist,
+        false => Comparison::Unequal,
+    }
 }
 
 pub fn sublist<T: PartialEq>(first_list: &[T], second_list: &[T]) -> Comparison {
-    match (first_list.len(), second_list.len()) {
-        (first, last) if first > last => is_superlist(first_list, second_list),
-        (first, last) if first < last => is_sublist(first_list, second_list),
-        _ => is_equal(first_list, second_list),
+    let a_len = first_list.len();
+    let b_len = second_list.len();
+
+    match a_len > b_len {
+        true => superlist_comparison(first_list, second_list),
+        false if a_len != b_len => sublist_comparison(first_list, second_list),
+        false => equality_comparison(first_list, second_list),
     }
 }
