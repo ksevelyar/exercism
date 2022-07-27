@@ -1,10 +1,8 @@
 mod medium;
 
 fn main() {
-    dbg!(medium::sublist::sublist(&[1, 2, 3], &[1, 2, 3, 4, 5]));
+    use medium::clock::Clock;
 
-    dbg!(medium::sublist::sublist(&[1, 2, 3, 4, 5], &[1, 2, 3]));
-
-    dbg!(medium::sublist::sublist(&[1, 2, 3], &[1, 2, 3]));
-    dbg!(medium::sublist::sublist(&[1, 2, 3], &[1, 4, 3]));
+    dbg!(Clock::new(8, 0).to_string());
+    dbg!(Clock::new(0, 3).add_minutes(-4).to_string());
 }
