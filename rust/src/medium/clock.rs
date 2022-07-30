@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Clock {
     hours: i32,
     minutes: i32,
@@ -8,28 +8,17 @@ pub struct Clock {
 
 impl Clock {
     pub fn new(hours: i32, minutes: i32) -> Self {
-        let normalized_hours = hours % 24;
-        Clock {
-            hours: normalized_hours,
-            minutes,
-        }
-    }
+        let minutes_per_day = 24 * 60;
+        let state = (hours * 60 + minutes).rem_euclid(minutes_per_day);
 
-    fn state_in_minutes(&self) -> i32 {
-        self.hours * 60 + self.minutes
+        Clock {
+            hours: state / 60,
+            minutes: state % 60,
+        }
     }
 
     pub fn add_minutes(&self, minutes: i32) -> Self {
-        let minutes_per_day = 24 * 60;
-        let new_state = (self.state_in_minutes() + minutes) % minutes_per_day;
-
-        let new_state_minutes = new_state % 60;
-        let new_state_hours = new_state / 60;
-
-        Clock {
-            hours: new_state_hours,
-            minutes: new_state_minutes,
-        }
+        Self::new(self.hours, self.minutes + minutes)
     }
 }
 
@@ -39,8 +28,3 @@ impl fmt::Display for Clock {
     }
 }
 
-impl PartialEq for Clock {
-    fn eq(&self, other: &Self) -> bool {
-        self.hours == other.hours && self.minutes == other.minutes
-    }
-}
