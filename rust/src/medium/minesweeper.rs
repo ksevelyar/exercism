@@ -9,7 +9,7 @@ fn annotate_row(index: usize, minefield: &[&str]) -> String {
 
     let rows = minefield.get(prev_row..=next_row).unwrap();
 
-    let v = rows.iter().map(|row| row.as_bytes());
+    let v: Vec<&[u8]> = rows.iter().map(|row| row.as_bytes()).collect();
     dbg!(v);
 
     "String".to_owned()
