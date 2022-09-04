@@ -1,25 +1,18 @@
 use std::str;
 
-fn annotate_first_row(minefield: &[&str]) -> String {
-    "1".to_owned()
-}
+fn annotate_row(index: usize, minefield: &[&str]) -> String {
+    let prev_row = index.saturating_sub(1);
+    let next_row = match index {
+        _ if index == minefield.len() - 1 => index,
+        _ => index + 1,
+    };
 
-fn annotate_last_row(minefield: &[&str]) -> String {
-    "last".to_owned()
-}
+    let rows = minefield.get(prev_row..=next_row).unwrap();
 
-fn annotate_triplet_row(row_index: usize, minefield: &[&str]) -> String {
-    "triplet".to_owned()
-}
+    let v = rows.iter().map(|row| row.as_bytes());
+    dbg!(v);
 
-fn annotate_row(row_index: usize, minefield: &[&str]) -> String {
-    let last_row = minefield.len() - 1;
-
-    match row_index {
-        0 => annotate_first_row(minefield),
-        _ if row_index == last_row => annotate_last_row(minefield),
-        _ => annotate_triplet_row(row_index, minefield),
-    }
+    "String".to_owned()
 }
 
 pub fn annotate(minefield: &[&str]) -> Vec<String> {
