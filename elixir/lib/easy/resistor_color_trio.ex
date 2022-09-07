@@ -18,8 +18,7 @@ defmodule ResistorColorTrio do
 
   @spec label(colors :: [atom]) :: {number, :ohms | :kiloohms}
   def label(colors) do
-    ohms = colors_to_ohms(colors)
-    format_output(ohms, div(ohms, 1000))
+    colors_to_ohms(colors) |> format_output()
   end
 
   defp colors_to_ohms(colors) do
@@ -29,6 +28,6 @@ defmodule ResistorColorTrio do
     Integer.undigits([first_digit, second_digit]) * 10 ** powers_of_10
   end
 
-  defp format_output(_ohms, kiloohms) when kiloohms > 0, do: {kiloohms, :kiloohms}
-  defp format_output(ohms, _kiloohms), do: {ohms, :ohms}
+  defp format_output(ohms) when ohms > 1000, do: {div(ohms, 1000), :kiloohms}
+  defp format_output(ohms), do: {ohms, :ohms}
 end
