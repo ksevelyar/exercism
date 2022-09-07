@@ -18,13 +18,17 @@ defmodule ResistorColorTrio do
 
   @spec label(colors :: [atom]) :: {number, :ohms | :kiloohms}
   def label(colors) do
+    ohms = colors_to_ohms(colors)
+    format_output(ohms, div(ohms, 1000))
+  end
+
+  defp colors_to_ohms(colors) do
     [first_digit, second_digit, powers_of_10] =
       Enum.map(colors, fn color -> @color_values[color] end)
 
-    (Integer.undigits([first_digit, second_digit]) * 10 ** powers_of_10)
-    |> parse_value()
+    Integer.undigits([first_digit, second_digit]) * 10 ** powers_of_10
   end
 
-  defp parse_value(value) when div(value, 1000) > 0, do: {div(value, 1000), :kiloohms}
-  defp parse_value(value), do: {value, :ohms}
+  defp format_output(_ohms, kiloohms) when kiloohms > 0, do: {kiloohms, :kiloohms}
+  defp format_output(ohms, _kiloohms), do: {ohms, :ohms}
 end
