@@ -1,8 +1,4 @@
 defmodule ProteinTranslation do
-  @doc """
-  Given an RNA string, return a list of proteins specified by codons, in order.
-  """
-
   @codons %{
     "UGU" => "Cysteine",
     "UGC" => "Cysteine",
@@ -23,8 +19,14 @@ defmodule ProteinTranslation do
     "UGA" => "STOP"
   }
 
+  @doc "Given an RNA string, return a list of proteins specified by codons, in order."
   @spec of_rna(String.t()) :: {:ok, list(String.t())} | {:error, String.t()}
   def of_rna(rna), do: proteins(rna, [])
+
+  @doc "Given a codon, return the corresponding protein"
+  @spec of_codon(String.t()) :: {:ok, String.t()} | {:error, String.t()}
+  def of_codon(codon) when is_map_key(@codons, codon), do: {:ok, @codons[codon]}
+  def of_codon(_codon), do: {:error, "invalid codon"}
 
   defp proteins("", list), do: {:ok, Enum.reverse(list)}
   defp proteins(<<codon :: binary-size(3)>> <> _tail, list) when codon in ["UAA", "UAG", "UGA"] do
@@ -37,11 +39,4 @@ defmodule ProteinTranslation do
   end
 
   defp proteins(_rna, _list), do: {:error, "invalid RNA"}
-
-  @doc """
-  Given a codon, return the corresponding protein
-  """
-  @spec of_codon(String.t()) :: {:ok, String.t()} | {:error, String.t()}
-  def of_codon(codon) when is_map_key(@codons, codon), do: {:ok, @codons[codon]}
-  def of_codon(_codon), do: {:error, "invalid codon"}
 end
