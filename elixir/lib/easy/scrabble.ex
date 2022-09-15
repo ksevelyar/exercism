@@ -1,8 +1,4 @@
 defmodule Scrabble do
-  @doc """
-  Calculate the scrabble score for the word.
-  """
-
   @letter_values %{
     "a" => 1,
     "e" => 1,
@@ -32,6 +28,7 @@ defmodule Scrabble do
     "z" => 10
   }
 
+  @doc "Calculate the scrabble score for the word."
   @spec score(String.t()) :: non_neg_integer
   def score(word) do
     word
