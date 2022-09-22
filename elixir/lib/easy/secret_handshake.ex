@@ -22,17 +22,18 @@ defmodule SecretHandshake do
   10000 = Reverse the order of the operations in the secret handshake
   """
   @spec commands(code :: integer) :: list(String.t())
-  def commands(code), do: reply(code, @actions, [])
+  def commands(code), do: commands(code, @actions, [])
 
-  defp reply(_, [], replies), do: replies
+  defguardp is_valid(code, reply_code) when Bitwise.band(code, reply_code) != 0
 
-  defp reply(code, [{reply_code, reply_string} | actions], replies)
-       when Bitwise.band(code, reply_code) != 0 do
-    case reply_string do
+  defp commands(_, [], replies), do: replies
+
+  defp commands(code, [{reply_code, reply} | actions], replies) when is_valid(code, reply_code) do
+    case reply do
       "reverse" -> Enum.reverse(replies)
-      _ -> reply(code, actions, [reply_string | replies])
+      _ -> commands(code, actions, [reply | replies])
     end
   end
 
-  defp reply(code, [_ | actions], replies), do: reply(code, actions, replies)
+  defp commands(code, [_ | actions], replies), do: commands(code, actions, replies)
 end
