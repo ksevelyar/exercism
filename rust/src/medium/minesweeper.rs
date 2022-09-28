@@ -1,10 +1,29 @@
-use std::str;
+fn mines_around(index: usize, neighbours: &Vec<&[u8]>) -> usize {
+    let mine: u8 = 42;
+    let prev_column = index.saturating_sub(1);
+    let next_column = match index {
+        _ if index == neighbours[0].len() - 1 => index,
+        _ => index + 1,
+    };
+
+    neighbours
+        .iter()
+        .map(|row| &row[prev_column..=next_column])
+        .flatten()
+        .filter(|item| **item == mine)
+        .count()
+}
 
 fn annotate_item(index: usize, item: u8, neighbours: &Vec<&[u8]>) -> String {
     let mine: u8 = 42;
-    match item {
-        _ if item == mine => "*".to_owned(),
-        _ => "x".to_owned(),
+
+    if item == mine {
+        return "*".to_owned();
+    }
+
+    match mines_around(index, neighbours) {
+        0 => " ".to_owned(),
+        count => count.to_string(),
     }
 }
 
@@ -15,8 +34,10 @@ fn neighbours<'a>(index: usize, minefield: &'a [&str]) -> Vec<&'a [u8]> {
         _ => index + 1,
     };
 
-    let rows = &minefield[prev_row..=next_row];
-    dbg!(rows).iter().map(|row| row.as_bytes()).collect()
+    minefield[prev_row..=next_row]
+        .iter()
+        .map(|row| row.as_bytes())
+        .collect()
 }
 
 fn annotate_row(index: usize, minefield: &[&str]) -> String {
@@ -30,8 +51,6 @@ fn annotate_row(index: usize, minefield: &[&str]) -> String {
 }
 
 pub fn annotate(minefield: &[&str]) -> Vec<String> {
-    dbg!(minefield[0].as_bytes());
-
     (0..minefield.len())
         .map(|index| annotate_row(index, minefield))
         .collect()
