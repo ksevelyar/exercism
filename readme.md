@@ -1,4 +1,4 @@
-# exercism
+# Exercism
 
-* [rust](/rust/src)
-* [elixir](/elixir/lib)
+* [rust](/rust/)
+* [elixir](/elixir/)

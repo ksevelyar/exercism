@@ -29,11 +29,12 @@ defmodule ProteinTranslation do
   def of_codon(_codon), do: {:error, "invalid codon"}
 
   defp proteins("", list), do: {:ok, Enum.reverse(list)}
-  defp proteins(<<codon :: binary-size(3)>> <> _tail, list) when codon in ["UAA", "UAG", "UGA"] do
+
+  defp proteins(<<codon::binary-size(3)>> <> _tail, list) when codon in ["UAA", "UAG", "UGA"] do
     proteins("", list)
   end
 
-  defp proteins(<<codon :: binary-size(3)>> <> tail, list) when is_map_key(@codons, codon) do
+  defp proteins(<<codon::binary-size(3)>> <> tail, list) when is_map_key(@codons, codon) do
     {:ok, protein} = of_codon(codon)
     proteins(tail, [protein | list])
   end

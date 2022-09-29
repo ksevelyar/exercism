@@ -2,6 +2,6 @@
 
 exercism + rust-analyzer
 
-# Test
+## Format
 
-`cargo run`
+`cargo fmt`
