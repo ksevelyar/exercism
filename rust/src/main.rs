@@ -1,7 +1,6 @@
 mod medium;
 
 fn main() {
-    dbg!(medium::minesweeper::annotate(&[
-        "  *  ", "  *  ", "*****", "  *  ", "  *  ",
-    ]));
+    dbg!(medium::luhn::is_valid("  *  "));
+    dbg!(medium::luhn::is_valid("1234  5678"));
 }
