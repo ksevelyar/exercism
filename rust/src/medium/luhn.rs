@@ -1,37 +1,37 @@
-use core::fmt::Display;
+pub fn is_valid(code: &str) -> bool {
+    let digits = match parse_input(code) {
+        Some(chars) => match chars.len() {
+            0 | 1 => return false,
+            _ => chars,
+        },
+        None => return false,
+    };
 
-#[derive(Debug)]
-pub struct ParseDigitsError(String);
+    let sum: u32 = digits
+        .iter()
+        .rev()
+        .enumerate()
+        .map(|(index, digit)| luhn_double(index, *digit))
+        .sum();
 
-impl std::error::Error for ParseDigitsError {}
+    sum % 10 == 0
+}
 
-impl Display for ParseDigitsError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Can't parse to digit: {}", self.0)
+fn luhn_double(index: usize, digit: u32) -> u32 {
+    let processed_digit = match index % 2 {
+        0 => return digit,
+        _ => digit * 2,
+    };
+
+    match processed_digit > 9 {
+        true => processed_digit - 9,
+        false => processed_digit,
     }
 }
 
-pub fn is_valid(code: &str) -> bool {
-    let digits = match parse_input(code) {
-        Ok(chars) => match chars.len() {
-          0|1 => return false,
-          _ => chars
-        },
-        Err(_) => return false,
-    };
-
-    dbg!(digits);
-
-    true
-}
-
-pub fn parse_input(code: &str) -> Result<Vec<u8>, ParseDigitsError> {
+fn parse_input(code: &str) -> Option<Vec<u32>> {
     code.chars()
         .filter(|char| !char.is_whitespace())
-        .map(|char| {
-            char.to_digit(10)
-                .ok_or(ParseDigitsError(char.to_string()))
-                .map(|x| x as u8)
-        })
+        .map(|char| char.to_digit(10))
         .collect()
 }
