@@ -1,5 +1,6 @@
+const MINE: u8 = 42;
+
 fn mines_around(index: usize, neighbours: &Vec<&[u8]>) -> usize {
-    let mine: u8 = 42;
     let prev_column = index.saturating_sub(1);
     let next_column = match index {
         _ if index == neighbours[0].len() - 1 => index,
@@ -7,15 +8,14 @@ fn mines_around(index: usize, neighbours: &Vec<&[u8]>) -> usize {
     };
 
     neighbours
-        .iter().flat_map(|row| &row[prev_column..=next_column])
-        .filter(|item| **item == mine)
+        .iter()
+        .flat_map(|row| &row[prev_column..=next_column])
+        .filter(|item| **item == MINE)
         .count()
 }
 
 fn annotate_item(index: usize, item: u8, neighbours: &Vec<&[u8]>) -> String {
-    let mine: u8 = 42;
-
-    if item == mine {
+    if item == MINE {
         return "*".to_owned();
     }
 
