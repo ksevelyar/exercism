@@ -1,7 +1,7 @@
 #[derive(Debug)]
-pub struct Allergies;
+pub struct Allergies(Vec<Allergen>);
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum Allergen {
     Eggs = 1,
     Peanuts = 2,
@@ -28,19 +28,20 @@ impl Allergies {
             Eggs,
         ];
 
-        dbg!(allergens.map(|allergen| allergen as u32));
+        let allergies: Vec<Allergen> = allergens
+            .iter()
+            .filter(|allergen| (**allergen as u32 & score) > 0)
+            .copied()
+            .collect();
 
-        Self
+        Self(allergies)
     }
 
     pub fn is_allergic_to(&self, allergen: &Allergen) -> bool {
-        unimplemented!(
-            "Determine if the patient is allergic to the '{:?}' allergen.",
-            allergen
-        );
+        self.0.iter().any(|allergy| allergy == allergen)
     }
 
     pub fn allergies(&self) -> Vec<Allergen> {
-        unimplemented!("Return the list of allergens contained within the score with which the Allergies struct was made.");
+        self.0.clone()
     }
 }
