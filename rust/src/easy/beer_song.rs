@@ -28,7 +28,7 @@ pub fn verse(n: u32) -> String {
 pub fn sing(start: u32, end: u32) -> String {
     (end..=start)
         .rev()
-        .map(|n| verse(n))
+        .map(verse)
         .collect::<Vec<String>>()
         .join("\n")
 }

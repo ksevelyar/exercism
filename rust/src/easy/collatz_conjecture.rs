@@ -1,6 +1,6 @@
 fn transform(num: u64, count: u64) -> Option<u64> {
     match num {
-        1 => return Some(count),
+        1 => Some(count),
 
         num if num % 2 == 0 => transform(num / 2, count + 1),
 

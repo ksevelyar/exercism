@@ -24,7 +24,10 @@ fn evaluate_two_last_items(stack: &mut Vec<i32>, calc: fn(i32, i32) -> i32) -> O
     let b = stack.pop();
 
     match (a, b) {
-        (Some(a), Some(b)) => Some(stack.push(calc(a, b))),
+        (Some(a), Some(b)) => {
+            stack.push(calc(a, b));
+            Some(())
+        },
         _ => None,
     }
 }
