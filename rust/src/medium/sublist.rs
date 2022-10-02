@@ -33,7 +33,7 @@ fn equality_comparison<T: PartialEq>(first_list: &[T], second_list: &[T]) -> Com
 }
 
 fn superlist_comparison<T: PartialEq>(first_list: &[T], second_list: &[T]) -> Comparison {
-    if second_list.len() == 0 {
+    if second_list.is_empty() {
         return Comparison::Superlist;
     }
 
@@ -44,7 +44,7 @@ fn superlist_comparison<T: PartialEq>(first_list: &[T], second_list: &[T]) -> Co
 }
 
 fn sublist_comparison<T: PartialEq>(first_list: &[T], second_list: &[T]) -> Comparison {
-    if first_list.len() == 0 {
+    if first_list.is_empty() {
         return Comparison::Sublist;
     }
 
