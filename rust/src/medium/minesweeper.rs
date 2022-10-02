@@ -7,9 +7,7 @@ fn mines_around(index: usize, neighbours: &Vec<&[u8]>) -> usize {
     };
 
     neighbours
-        .iter()
-        .map(|row| &row[prev_column..=next_column])
-        .flatten()
+        .iter().flat_map(|row| &row[prev_column..=next_column])
         .filter(|item| **item == mine)
         .count()
 }
