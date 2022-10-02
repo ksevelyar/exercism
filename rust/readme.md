@@ -1,7 +1,6 @@
-# Exercism
+# Exercism/Rust
 
-exercism + rust-analyzer
-
-## Format
-
-`cargo fmt`
+## Linters
+* rust-analyzer
+* `cargo clippy`
+* `cargo fmt`

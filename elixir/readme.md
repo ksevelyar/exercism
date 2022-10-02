@@ -1,7 +1,5 @@
-# Exercism
+# Exercism/Elixir
 
-exercism + elixirls
-
-## Format
-
-`mix format`
+## Linters
+* elixirls
+* `mix format`
