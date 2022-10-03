@@ -3,5 +3,5 @@
 mod medium;
 
 fn main() {
-    dbg!(medium::allergies::Allergies::new(34));
+    dbg!(medium::tournament::tally("Allegoric Alaskans;Blithering Badgers;win"));
 }
