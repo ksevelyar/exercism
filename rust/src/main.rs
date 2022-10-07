@@ -3,5 +3,5 @@
 mod medium;
 
 fn main() {
-    dbg!(medium::tournament::tally("Allegoric Alaskans;Blithering Badgers;win"));
+    println!("{}", medium::tournament::tally("Allegoric Alaskans;Blithering Badgers;win"));
 }
