@@ -1,3 +1,4 @@
+pub mod acronym;
 pub mod allergies;
 pub mod anagram;
 pub mod clock;
