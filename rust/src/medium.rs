@@ -1,5 +1,6 @@
 pub mod acronym;
 pub mod allergies;
+pub mod alphametics;
 pub mod anagram;
 pub mod clock;
 pub mod luhn;

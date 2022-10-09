@@ -27,8 +27,8 @@ fn header() -> &'static str {
 
 fn parse_matches(results: &str) -> Vec<Vec<&str>> {
     results
-        .split("\n")
-        .map(|result| result.split(";").collect::<Vec<&str>>())
+        .lines()
+        .map(|result| result.split(';').collect::<Vec<&str>>())
         .collect()
 }
 
@@ -42,24 +42,24 @@ fn new_team() -> Team {
     }
 }
 
-fn add_win(teams: &mut HashMap<String, Team>, team1_name: &str, team2_name: &str) -> () {
-    let team1 = teams.entry(team1_name.to_owned()).or_insert(new_team());
+fn add_win(teams: &mut HashMap<String, Team>, team1_name: &str, team2_name: &str) {
+    let team1 = teams.entry(team1_name.to_owned()).or_insert_with(new_team);
     team1.matches_played += 1;
     team1.matches_won += 1;
     team1.points += 3;
 
-    let team2 = teams.entry(team2_name.to_owned()).or_insert(new_team());
+    let team2 = teams.entry(team2_name.to_owned()).or_insert_with(new_team);
     team2.matches_played += 1;
     team2.matches_lost += 1;
 }
 
-fn add_draw(teams: &mut HashMap<String, Team>, team1_name: &str, team2_name: &str) -> () {
-    let team1 = teams.entry(team1_name.to_owned()).or_insert(new_team());
+fn add_draw(teams: &mut HashMap<String, Team>, team1_name: &str, team2_name: &str) {
+    let team1 = teams.entry(team1_name.to_owned()).or_insert_with(new_team);
     team1.matches_played += 1;
     team1.matches_drawn += 1;
     team1.points += 1;
 
-    let team2 = teams.entry(team2_name.to_owned()).or_insert(new_team());
+    let team2 = teams.entry(team2_name.to_owned()).or_insert_with(new_team);
     team2.matches_played += 1;
     team2.matches_drawn += 1;
     team2.points += 1;
@@ -76,7 +76,7 @@ fn teams(input: Vec<Vec<&str>>) -> HashMap<String, Team> {
                 "win" => add_win(&mut teams, team1, team2),
                 "loss" => add_win(&mut teams, team2, team1),
                 "draw" => add_draw(&mut teams, team1, team2),
-                _ => panic!("not known result!"),
+                _ => panic!("The result of the match is an unknown word."),
             };
 
             teams
