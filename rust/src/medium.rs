@@ -7,5 +7,6 @@ pub mod isbn_verifier;
 pub mod luhn;
 pub mod minesweeper;
 pub mod robot_name;
+pub mod space_age;
 pub mod sublist;
 pub mod tournament;
