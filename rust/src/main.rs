@@ -2,4 +2,6 @@
 
 mod medium;
 
-fn main() {}
+fn main() {
+    println!("{:?}", medium::alphametics::parse("I + BB == ILL"));
+}
