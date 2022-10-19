@@ -3,5 +3,5 @@
 mod medium;
 
 fn main() {
-    println!("{:?}", medium::alphametics::parse("I + BB == ILL"));
+    println!("{:?}", medium::alphametics::solve("I + BB == ILL"));
 }
