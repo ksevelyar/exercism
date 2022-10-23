@@ -1,42 +1,56 @@
 use std::collections::HashMap;
 
 #[derive(Debug)]
-pub struct Puzzle<'a> {
-    sum: Vec<&'a str>,
-    target: &'a str,
+struct Puzzle<'a> {
+    sum: Vec<Vec<char>>,
+    result: &'a str,
 }
 
-fn parse(input: &str) -> Option<Puzzle> {
-    let sum_and_target: Vec<&str> = input.split(" == ").collect();
+impl<'a> Puzzle<'a> {
+    fn build(input: &str) -> Option<Puzzle> {
+        let sum_and_result: Vec<&str> = input.split(" == ").collect();
 
-    let sum = sum_and_target.get(0)?.split(" + ").collect();
-    let target = sum_and_target.get(1)?;
+        let sum = sum_and_result
+            .get(0)?
+            .split(" + ")
+            .map(|word| word.chars().collect())
+            .collect();
 
-    Some(Puzzle { sum, target })
+        let result = sum_and_result.get(1)?;
+
+        Some(Puzzle { sum, result })
+    }
+
+    fn possible_solutions(self: &Puzzle<'a>) -> std::ops::Range<usize> {
+        Puzzle::max_solution(&self.sum)..Puzzle::min_solution(self.result)
+    }
+
+    fn max_value_for_length(len: usize) -> usize {
+        (0..len).enumerate().fold(0, |acc, (index, _digit)| {
+            acc + 9 * 10_usize.pow(index as u32)
+        })
+    }
+
+    fn max_solution(sum: &[Vec<char>]) -> usize {
+        sum.iter()
+            .map(|term| Self::max_value_for_length(term.len()))
+            .sum()
+    }
+
+    fn min_solution(result: &str) -> usize {
+        10_usize.pow(result.len() as u32 - 1)
+    }
 }
 
-fn max_for_length(len: usize) -> usize {
-    (0..len).rev().enumerate().fold(0, |acc, (index, _digit)| {
-        acc + 9 * 10_usize.pow(index as u32)
-    })
-}
-
-fn max_target(sum: &[&str]) -> usize {
-    sum.iter().map(|term| max_for_length(term.len())).sum()
-}
-fn min_target(target: &str) -> usize {
-    10_usize.pow(target.len() as u32 - 1)
-}
-fn verify_guess_for_column() -> bool {
+fn verify_num(number: u32) -> bool {
     true
 }
 
 pub fn solve(input: &str) -> Option<HashMap<char, u8>> {
-    let puzzle = parse(input)?;
+    let puzzle = Puzzle::build(input)?;
 
     dbg!(&puzzle);
-    dbg!(max_target(&puzzle.sum));
-    dbg!(min_target(&puzzle.target));
+    dbg!(&puzzle.possible_solutions());
 
     let mut map: HashMap<char, u8> = HashMap::new();
     map.insert('A', 1);
