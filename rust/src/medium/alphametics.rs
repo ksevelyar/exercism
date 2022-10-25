@@ -42,8 +42,21 @@ impl<'a> Puzzle<'a> {
     }
 }
 
-fn verify_num(number: u32) -> bool {
-    true
+fn verify_col(col: &[char], col_sum: u8, known_chars: &HashMap<char, u8>) {}
+
+fn verify_cols(puzzle: &Puzzle, num: usize) -> bool {
+    let known_chars: HashMap<char, u8> = puzzle
+        .result
+        .chars()
+        .zip(
+            num.to_string()
+                .chars()
+                .map(|char| char.to_digit(10).unwrap() as u8),
+        )
+        .collect();
+
+    dbg!(verify_col(&['o', 'o', 'o'], 2u8, &known_chars));
+    false
 }
 
 pub fn solve(input: &str) -> Option<HashMap<char, u8>> {
@@ -51,6 +64,8 @@ pub fn solve(input: &str) -> Option<HashMap<char, u8>> {
 
     dbg!(&puzzle);
     dbg!(&puzzle.possible_solutions());
+
+    dbg!(verify_cols(&puzzle, 108));
 
     let mut map: HashMap<char, u8> = HashMap::new();
     map.insert('A', 1);
