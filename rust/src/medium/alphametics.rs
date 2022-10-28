@@ -42,7 +42,51 @@ impl<'a> Puzzle<'a> {
     }
 }
 
-fn verify_col(col: &[char], col_sum: u8, known_chars: &HashMap<char, u8>) {}
+fn combinations(n: usize, acc: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
+    let items = vec![1, 2, 3, 4, 5];
+
+    let acc = match acc.is_empty() {
+      false => acc,
+      true => items.iter().cloned().map(|item| vec![item]).collect()
+    };
+
+    if n == 1 {
+        return acc;
+    };
+
+    let new_acc: Vec<Vec<u8>> = items
+        .iter()
+        .map(|x| {
+            acc.iter()
+                .map(|set| {
+                    let mut new_set = set.clone();
+                    new_set.push(*x);
+
+                    new_set
+                })
+                .collect::<Vec<Vec<u8>>>()
+        })
+        .flatten()
+        .collect();
+
+    combinations(n - 1, new_acc)
+}
+
+pub fn solve(input: &str) -> Option<HashMap<char, u8>> {
+    let puzzle = Puzzle::build(input)?;
+
+    dbg!(&puzzle);
+    dbg!(&puzzle.possible_solutions());
+
+    dbg!(combinations(2, Vec::new()));
+    dbg!(combinations(2, Vec::new()).len());
+
+    let mut map: HashMap<char, u8> = HashMap::new();
+    map.insert('A', 1);
+    Some(map)
+}
+
+fn verify_col(available_numbers: &[u32], n: u32) {}
 
 fn verify_cols(puzzle: &Puzzle, num: usize) -> bool {
     let known_chars: HashMap<char, u8> = puzzle
@@ -55,21 +99,9 @@ fn verify_cols(puzzle: &Puzzle, num: usize) -> bool {
         )
         .collect();
 
-    dbg!(verify_col(&['o', 'o', 'o'], 2u8, &known_chars));
+    let available_numbers = vec![1, 2, 3, 4];
+    dbg!(verify_col(&available_numbers, 2));
     false
-}
-
-pub fn solve(input: &str) -> Option<HashMap<char, u8>> {
-    let puzzle = Puzzle::build(input)?;
-
-    dbg!(&puzzle);
-    dbg!(&puzzle.possible_solutions());
-
-    dbg!(verify_cols(&puzzle, 108));
-
-    let mut map: HashMap<char, u8> = HashMap::new();
-    map.insert('A', 1);
-    Some(map)
 }
 
 #[cfg(test)]
