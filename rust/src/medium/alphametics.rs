@@ -46,11 +46,11 @@ fn combinations(n: usize, acc: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
     let items = vec![1, 2, 3, 4, 5];
 
     let acc = match acc.is_empty() {
-      false => acc,
-      true => items.iter().cloned().map(|item| vec![item]).collect()
+        false => acc,
+        true => items.iter().cloned().map(|item| vec![item]).collect(),
     };
 
-    if n == 1 {
+    if n <= 1 {
         return acc;
     };
 
@@ -76,20 +76,28 @@ pub fn solve(input: &str) -> Option<HashMap<char, u8>> {
     let puzzle = Puzzle::build(input)?;
 
     dbg!(&puzzle);
-    dbg!(&puzzle.possible_solutions());
 
-    dbg!(combinations(2, Vec::new()));
-    dbg!(combinations(2, Vec::new()).len());
+    let known_chars = known_chars(&puzzle, 106);
+    let unknown_chars: Vec<char> = known_chars.keys().copied().collect();
+
+    let known_nums: Vec<u8> = known_chars.values().copied().collect();
+    let possible_nums: Vec<u8> = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        .iter()
+        .filter(|digit| !known_nums.contains(digit))
+        .copied()
+        .collect();
+
+    dbg!(&known_nums);
+    dbg!(&possible_nums);
+    // dbg!(combinations(2, Vec::new()));
 
     let mut map: HashMap<char, u8> = HashMap::new();
     map.insert('A', 1);
     Some(map)
 }
 
-fn verify_col(available_numbers: &[u32], n: u32) {}
-
-fn verify_cols(puzzle: &Puzzle, num: usize) -> bool {
-    let known_chars: HashMap<char, u8> = puzzle
+fn known_chars(puzzle: &Puzzle, num: usize) -> HashMap<char, u8> {
+    puzzle
         .result
         .chars()
         .zip(
@@ -97,11 +105,7 @@ fn verify_cols(puzzle: &Puzzle, num: usize) -> bool {
                 .chars()
                 .map(|char| char.to_digit(10).unwrap() as u8),
         )
-        .collect();
-
-    let available_numbers = vec![1, 2, 3, 4];
-    dbg!(verify_col(&available_numbers, 2));
-    false
+        .collect()
 }
 
 #[cfg(test)]
