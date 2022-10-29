@@ -3,5 +3,5 @@
 mod medium;
 
 fn main() {
-    println!("{:?}", medium::alphametics::solve("I + BB == ILL"));
+    println!("{:?}", medium::alphametics::solve("AND + A + STRONG + OFFENSE + AS + A + GOOD == DEFENSE"));
 }

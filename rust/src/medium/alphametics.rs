@@ -21,8 +21,8 @@ impl<'a> Puzzle<'a> {
         Some(Puzzle { sum, result })
     }
 
-    fn possible_solutions(self: &Puzzle<'a>) -> std::ops::Range<usize> {
-        Puzzle::max_solution(&self.sum)..Puzzle::min_solution(self.result)
+    fn possible_solutions(self: &Puzzle<'a>) -> usize {
+        Puzzle::max_solution(&self.sum) - Puzzle::min_solution(self.result)
     }
 
     fn max_value_for_length(len: usize) -> usize {
@@ -56,13 +56,13 @@ fn combinations(items: &[u8], n: usize, acc: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
         .iter()
         .flat_map(|x| {
             acc.iter()
+                .filter(|set| !set.contains(x))
                 .map(|set| {
                     let mut new_set = set.clone();
                     new_set.push(*x);
 
                     new_set
                 })
-                .collect::<Vec<Vec<u8>>>()
         })
         .collect();
 
@@ -84,7 +84,7 @@ fn known_chars(puzzle: &Puzzle, num: usize) -> HashMap<char, u8> {
 pub fn solve(input: &str) -> Option<HashMap<char, u8>> {
     let puzzle = Puzzle::build(input)?;
 
-    dbg!(&puzzle);
+    dbg!(&puzzle.possible_solutions());
 
     let known_chars = known_chars(&puzzle, 100);
     let unknown_chars: HashSet<char> = puzzle
@@ -102,11 +102,8 @@ pub fn solve(input: &str) -> Option<HashMap<char, u8>> {
         .copied()
         .collect();
 
-    dbg!(combinations(
-        &possible_nums,
-        unknown_chars.len(),
-        Vec::new()
-    ));
+    let combinations = combinations(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 10, Vec::new());
+    dbg!(combinations.len());
 
     let mut map: HashMap<char, u8> = HashMap::new();
     map.insert('A', 1);
