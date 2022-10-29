@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Debug)]
 struct Puzzle<'a> {
@@ -42,9 +42,7 @@ impl<'a> Puzzle<'a> {
     }
 }
 
-fn combinations(n: usize, acc: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
-    let items = vec![1, 2, 3, 4, 5];
-
+fn combinations(items: &[u8], n: usize, acc: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
     let acc = match acc.is_empty() {
         false => acc,
         true => items.iter().cloned().map(|item| vec![item]).collect(),
@@ -56,7 +54,7 @@ fn combinations(n: usize, acc: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
 
     let new_acc: Vec<Vec<u8>> = items
         .iter()
-        .map(|x| {
+        .flat_map(|x| {
             acc.iter()
                 .map(|set| {
                     let mut new_set = set.clone();
@@ -66,34 +64,9 @@ fn combinations(n: usize, acc: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
                 })
                 .collect::<Vec<Vec<u8>>>()
         })
-        .flatten()
         .collect();
 
-    combinations(n - 1, new_acc)
-}
-
-pub fn solve(input: &str) -> Option<HashMap<char, u8>> {
-    let puzzle = Puzzle::build(input)?;
-
-    dbg!(&puzzle);
-
-    let known_chars = known_chars(&puzzle, 106);
-    let unknown_chars: Vec<char> = known_chars.keys().copied().collect();
-
-    let known_nums: Vec<u8> = known_chars.values().copied().collect();
-    let possible_nums: Vec<u8> = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        .iter()
-        .filter(|digit| !known_nums.contains(digit))
-        .copied()
-        .collect();
-
-    dbg!(&known_nums);
-    dbg!(&possible_nums);
-    // dbg!(combinations(2, Vec::new()));
-
-    let mut map: HashMap<char, u8> = HashMap::new();
-    map.insert('A', 1);
-    Some(map)
+    combinations(items, n - 1, new_acc)
 }
 
 fn known_chars(puzzle: &Puzzle, num: usize) -> HashMap<char, u8> {
@@ -108,6 +81,37 @@ fn known_chars(puzzle: &Puzzle, num: usize) -> HashMap<char, u8> {
         .collect()
 }
 
+pub fn solve(input: &str) -> Option<HashMap<char, u8>> {
+    let puzzle = Puzzle::build(input)?;
+
+    dbg!(&puzzle);
+
+    let known_chars = known_chars(&puzzle, 100);
+    let unknown_chars: HashSet<char> = puzzle
+        .sum
+        .iter()
+        .flatten()
+        .filter(|char| !known_chars.contains_key(char))
+        .cloned()
+        .collect();
+
+    let known_nums: Vec<u8> = known_chars.values().copied().collect();
+    let possible_nums: Vec<u8> = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        .iter()
+        .filter(|digit| !known_nums.contains(digit))
+        .copied()
+        .collect();
+
+    dbg!(combinations(
+        &possible_nums,
+        unknown_chars.len(),
+        Vec::new()
+    ));
+
+    let mut map: HashMap<char, u8> = HashMap::new();
+    map.insert('A', 1);
+    Some(map)
+}
 #[cfg(test)]
 mod tests {
     use super::*;
