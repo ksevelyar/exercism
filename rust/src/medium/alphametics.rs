@@ -20,26 +20,6 @@ impl<'a> Puzzle<'a> {
 
         Some(Puzzle { sum, result })
     }
-
-    fn possible_solutions(self: &Puzzle<'a>) -> usize {
-        Puzzle::max_solution(&self.sum) - Puzzle::min_solution(self.result)
-    }
-
-    fn max_value_for_length(len: usize) -> usize {
-        (0..len).enumerate().fold(0, |acc, (index, _digit)| {
-            acc + 9 * 10_usize.pow(index as u32)
-        })
-    }
-
-    fn max_solution(sum: &[Vec<char>]) -> usize {
-        sum.iter()
-            .map(|term| Self::max_value_for_length(term.len()))
-            .sum()
-    }
-
-    fn min_solution(result: &str) -> usize {
-        10_usize.pow(result.len() as u32 - 1)
-    }
 }
 
 fn combinations(items: &[u8], n: usize, acc: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
@@ -55,14 +35,12 @@ fn combinations(items: &[u8], n: usize, acc: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
     let new_acc: Vec<Vec<u8>> = items
         .iter()
         .flat_map(|x| {
-            acc.iter()
-                .filter(|set| !set.contains(x))
-                .map(|set| {
-                    let mut new_set = set.clone();
-                    new_set.push(*x);
+            acc.iter().filter(|set| !set.contains(x)).map(|set| {
+                let mut new_set = set.clone();
+                new_set.push(*x);
 
-                    new_set
-                })
+                new_set
+            })
         })
         .collect();
 
@@ -84,26 +62,16 @@ fn known_chars(puzzle: &Puzzle, num: usize) -> HashMap<char, u8> {
 pub fn solve(input: &str) -> Option<HashMap<char, u8>> {
     let puzzle = Puzzle::build(input)?;
 
-    dbg!(&puzzle.possible_solutions());
+    dbg!(&puzzle);
 
-    let known_chars = known_chars(&puzzle, 100);
-    let unknown_chars: HashSet<char> = puzzle
-        .sum
+    let combinations = combinations(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 5, Vec::new());
+    dbg!(combinations
         .iter()
-        .flatten()
-        .filter(|char| !known_chars.contains_key(char))
+        .filter(|s| (s[0] + s[1] + s[2] + s[3] + s[4] + s[1] + s[0]) % 10 == s[3])
+        .filter(|s| s[1] > 0 && s[2] > 0 && s[4] > 0)
+        .filter(|s| s[0] == 3 && s[1] == 5)
         .cloned()
-        .collect();
-
-    let known_nums: Vec<u8> = known_chars.values().copied().collect();
-    let possible_nums: Vec<u8> = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        .iter()
-        .filter(|digit| !known_nums.contains(digit))
-        .copied()
-        .collect();
-
-    let combinations = combinations(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 10, Vec::new());
-    dbg!(combinations.len());
+        .collect::<Vec<Vec<u8>>>());
 
     let mut map: HashMap<char, u8> = HashMap::new();
     map.insert('A', 1);
