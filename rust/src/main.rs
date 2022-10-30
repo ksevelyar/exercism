@@ -3,5 +3,7 @@
 mod medium;
 
 fn main() {
-    println!("{:?}", medium::alphametics::solve("AND + A + STRONG + OFFENSE + AS + A + GOOD == DEFENSE"));
+    let string = "AND + A + STRONG + OFFENSE + AS + A + GOOD == DEFENSE";
+
+    println!("{:?}", medium::alphametics::solve(string));
 }

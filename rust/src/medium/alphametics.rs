@@ -13,7 +13,7 @@ impl<'a> Puzzle<'a> {
         let sum = sum_and_result
             .get(0)?
             .split(" + ")
-            .map(|word| word.chars().collect())
+            .map(|word| word.chars().rev().collect())
             .collect();
 
         let result = sum_and_result.get(1)?;
@@ -62,16 +62,26 @@ fn known_chars(puzzle: &Puzzle, num: usize) -> HashMap<char, u8> {
 pub fn solve(input: &str) -> Option<HashMap<char, u8>> {
     let puzzle = Puzzle::build(input)?;
 
-    dbg!(&puzzle);
+    let first_column: Vec<char> = puzzle.sum.iter().map(|term| term[0]).collect();
+    let chars: HashSet<char> = puzzle.sum.iter().map(|term| term[0]).collect();
 
-    let combinations = combinations(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 5, Vec::new());
-    dbg!(combinations
+    let first_col_result = puzzle.result.chars().rev().collect::<Vec<_>>()[0];
+
+    dbg!(&chars);
+
+    let combinations = combinations(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], chars.len(), Vec::new());
+    let combinations_f = combinations
         .iter()
-        .filter(|s| (s[0] + s[1] + s[2] + s[3] + s[4] + s[1] + s[0]) % 10 == s[3])
-        .filter(|s| s[1] > 0 && s[2] > 0 && s[4] > 0)
-        .filter(|s| s[0] == 3 && s[1] == 5)
+        .filter(|set| {
+            let map: HashMap<char, u8> = chars.iter().cloned().zip(set.iter().cloned()).collect();
+            let sum: usize = first_column.iter().map(|x| map[x] as usize).sum();
+
+            (sum % 10) == map[&first_col_result] as usize
+        })
         .cloned()
-        .collect::<Vec<Vec<u8>>>());
+        .collect::<Vec<Vec<u8>>>();
+
+    dbg!(combinations_f.len());
 
     let mut map: HashMap<char, u8> = HashMap::new();
     map.insert('A', 1);
