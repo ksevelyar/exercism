@@ -5,6 +5,7 @@ pub mod anagram;
 pub mod clock;
 pub mod grade_school;
 pub mod isbn_verifier;
+pub mod isogram;
 pub mod luhn;
 pub mod minesweeper;
 pub mod robot_name;
