@@ -67,6 +67,8 @@ pub fn solve(input: &str) -> Option<HashMap<char, u8>> {
         .filter(|char| char.is_ascii_alphabetic())
         .collect();
 
+    dbg!(&chars);
+
     let combinations = combinations(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], chars.len(), Vec::new());
     let combinations_f = combinations.iter().find(|set| {
         let map: HashMap<char, u8> = chars.iter().cloned().zip(set.iter().cloned()).collect();

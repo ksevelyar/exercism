@@ -3,6 +3,7 @@ pub mod allergies;
 pub mod alphametics;
 pub mod anagram;
 pub mod clock;
+pub mod grade_school;
 pub mod isbn_verifier;
 pub mod luhn;
 pub mod minesweeper;
