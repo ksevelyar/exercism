@@ -62,30 +62,44 @@ fn known_chars(puzzle: &Puzzle, num: usize) -> HashMap<char, u8> {
 pub fn solve(input: &str) -> Option<HashMap<char, u8>> {
     let puzzle = Puzzle::build(input)?;
 
-    let first_column: Vec<char> = puzzle.sum.iter().map(|term| term[0]).collect();
-    let chars: HashSet<char> = puzzle.sum.iter().map(|term| term[0]).collect();
-
-    let first_col_result = puzzle.result.chars().rev().collect::<Vec<_>>()[0];
-
-    dbg!(&chars);
+    let chars: HashSet<char> = input
+        .chars()
+        .filter(|char| char.is_ascii_alphabetic())
+        .collect();
 
     let combinations = combinations(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], chars.len(), Vec::new());
-    let combinations_f = combinations
-        .iter()
-        .filter(|set| {
-            let map: HashMap<char, u8> = chars.iter().cloned().zip(set.iter().cloned()).collect();
-            let sum: usize = first_column.iter().map(|x| map[x] as usize).sum();
+    let combinations_f = combinations.iter().find(|set| {
+        let map: HashMap<char, u8> = chars.iter().cloned().zip(set.iter().cloned()).collect();
 
-            (sum % 10) == map[&first_col_result] as usize
-        })
-        .cloned()
-        .collect::<Vec<Vec<u8>>>();
+        let sum: usize = puzzle
+            .sum
+            .iter()
+            .map(|term| {
+                term.iter().enumerate().fold(0, |acc, (ind, x)| {
+                    acc + (map[x] as usize) * (10usize.pow(ind as u32))
+                })
+            })
+            .sum();
 
-    dbg!(combinations_f.len());
+        let result = puzzle
+            .result
+            .chars()
+            .rev()
+            .enumerate()
+            .fold(0, |acc, (ind, x)| {
+                acc + (map[&x] as usize) * (10usize.pow(ind as u32))
+            });
 
-    let mut map: HashMap<char, u8> = HashMap::new();
-    map.insert('A', 1);
-    Some(map)
+        sum == result
+    })?;
+
+    Some(
+        chars
+            .iter()
+            .cloned()
+            .zip(combinations_f.iter().cloned())
+            .collect(),
+    )
 }
 #[cfg(test)]
 mod tests {
