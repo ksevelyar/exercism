@@ -10,6 +10,7 @@ pub mod luhn;
 pub mod minesweeper;
 pub mod pangram;
 pub mod robot_name;
+pub mod scrabble_score;
 pub mod space_age;
 pub mod sublist;
 pub mod tournament;
