@@ -1,4 +1,4 @@
-#[derive(PartialEq, Eq, Debug, Copy, Clone)]
+#[derive(PartialEq, Eq, Debug)]
 pub enum Direction {
     North,
     East,
@@ -6,7 +6,6 @@ pub enum Direction {
     West,
 }
 
-#[derive(Copy, Clone)]
 pub struct Robot {
     x: i32,
     y: i32,
@@ -69,7 +68,7 @@ impl Robot {
             'R' => acc.turn_right(),
             'L' => acc.turn_left(),
             'A' => acc.advance(),
-            _ => panic!("Unknown action {} 🐗", char),
+            _ => panic!("Action is unknown: {}", char),
         })
     }
 
