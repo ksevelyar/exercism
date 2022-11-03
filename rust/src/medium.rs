@@ -15,3 +15,4 @@ pub mod scrabble_score;
 pub mod space_age;
 pub mod sublist;
 pub mod tournament;
+pub mod word_count;
