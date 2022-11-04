@@ -9,6 +9,7 @@ pub mod isogram;
 pub mod luhn;
 pub mod minesweeper;
 pub mod pangram;
+pub mod pascals_triangle;
 pub mod robot_name;
 pub mod robot_simulator;
 pub mod scrabble_score;
