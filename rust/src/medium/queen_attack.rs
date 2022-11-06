@@ -1,31 +1,48 @@
 #[derive(Debug)]
-pub struct ChessPosition;
+pub struct ChessPosition {
+    rank: i32,
+    file: i32,
+}
 
 #[derive(Debug)]
-pub struct Queen;
+pub struct Queen {
+    position: ChessPosition,
+}
 
 impl ChessPosition {
+    fn is_out_of_board(y: i32, x: i32) -> bool {
+        x < 0 || y < 0 || x > 7 || y > 7
+    }
+
     pub fn new(rank: i32, file: i32) -> Option<Self> {
-        unimplemented!(
-            "Construct a ChessPosition struct, given the following rank, file: ({}, {}). If the position is invalid return None.",
-            rank,
-            file
-        );
+        if Self::is_out_of_board(rank, file) {
+            return None;
+        }
+
+        Some(ChessPosition { rank, file })
     }
 }
 
 impl Queen {
     pub fn new(position: ChessPosition) -> Self {
-        unimplemented!(
-            "Given the chess position {:?}, construct a Queen struct.",
-            position
-        );
+        Queen { position }
+    }
+
+    fn check_diagonal_attacks(&self, other: &Queen) -> bool {
+        // 2 diagonals
+        false
     }
 
     pub fn can_attack(&self, other: &Queen) -> bool {
-        unimplemented!(
-            "Determine if this Queen can attack the other Queen {:?}",
-            other
-        );
+        self.check_diagonal_attacks(other)
     }
+}
+
+#[test]
+fn queens_on_the_same_diagonal_can_attack() {
+    let white_queen = Queen::new(ChessPosition::new(2, 2).unwrap());
+
+    let black_queen = Queen::new(ChessPosition::new(0, 4).unwrap());
+
+    assert!(white_queen.can_attack(&black_queen));
 }
