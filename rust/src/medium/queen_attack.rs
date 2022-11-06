@@ -29,7 +29,18 @@ impl Queen {
     }
 
     fn check_diagonal_attacks(&self, other: &Queen) -> bool {
-        // 2 diagonals
+        let rank = self.position.rank;
+        let file = self.position.file;
+
+        let top_left = if rank < file {
+            (0, file - rank)
+        } else {
+            (rank - file, 0)
+        };
+        dbg!(top_left);
+
+        let bottom_left = (rank + file, 0);
+        dbg!(bottom_left);
         false
     }
 
