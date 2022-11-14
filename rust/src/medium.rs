@@ -15,6 +15,7 @@ pub mod pig_latin;
 pub mod queen_attack;
 pub mod robot_name;
 pub mod robot_simulator;
+pub mod rotational_cipher;
 pub mod scrabble_score;
 pub mod sieve;
 pub mod space_age;
