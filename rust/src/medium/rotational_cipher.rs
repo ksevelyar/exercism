@@ -1,39 +1,40 @@
-// use std::collections::HashMap;
+fn rotate_char(ch: char, key: i8) -> char {
+    let start = match ch.is_ascii_uppercase() {
+        true => b'A',
+        false => b'a',
+    };
+
+    let shift = ((ch as u8 - start) as i8 + key).rem_euclid(26);
+
+    (start + shift as u8) as char
+}
 
 pub fn rotate(input: &str, key: i8) -> String {
-    // let alphabet = 'a'..='z';
-    let shift = key.rem_euclid(26);
-
-    // let dict: HashMap<char, char> = alphabet
-    //     .clone()
-    //     .zip(alphabet.cycle().skip(shift as usize))
-    //     .collect();
-    //
-    dbg!(key,shift);
-
     input
         .chars()
         .map(|ch| {
-            if ch.is_ascii_alphabetic() {
-                (ch as u8 + shift as u8) as char
-            } else {
-                ch
-            }
+            if !ch.is_ascii_alphabetic() { return ch }
+            rotate_char(ch, key)
         })
         .collect()
 }
 
 #[test]
-fn test_rot_negative() {
-    assert_eq!(rotate("A", -26), "A".to_owned())
+fn rotate_a_26() {
+    assert_eq!("A", rotate("A", 26));
 }
 
 #[test]
-fn rotate_a_26() {
-    assert_eq!("a", rotate("a", 26));
+fn rotate_a_0() {
+    assert_eq!("a", rotate("a", 0));
 }
 
 #[test]
 fn rotate_m_negative_1() {
     assert_eq!("l", rotate("m", -1));
+}
+
+#[test]
+fn rotate_n_13_with_wrap() {
+    assert_eq!("a", rotate("n", 13));
 }
