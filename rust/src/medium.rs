@@ -18,6 +18,7 @@ pub mod robot_simulator;
 pub mod rotational_cipher;
 pub mod scrabble_score;
 pub mod sieve;
+pub mod simple_linked_list;
 pub mod space_age;
 pub mod sublist;
 pub mod tournament;
