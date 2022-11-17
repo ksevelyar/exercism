@@ -23,13 +23,16 @@ impl Palindrome {
 }
 
 pub fn palindrome_products(min: u64, max: u64) -> Option<(Palindrome, Palindrome)> {
-    let palindromes =
-        (min..=max).flat_map(|a| (min..=max).flat_map(move |b| Palindrome::new(a * b)));
+    let first = (min..=max)
+        .flat_map(|a| (min..=max).flat_map(move |b| Palindrome::new(a * b)))
+        .next()?;
 
-    let max = palindromes.clone().rev().next()?;
-    let min = palindromes.clone().next()?;
+    let threshold = max - ((max - min) / 100);
+    let last = (threshold..=max)
+        .flat_map(|a| (min..=max).flat_map(move |b| Palindrome::new(a * b)))
+        .max()?;
 
-    Some((min, max))
+    Some((first, last))
 }
 
 #[test]
