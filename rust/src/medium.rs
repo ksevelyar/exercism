@@ -11,6 +11,7 @@ pub mod minesweeper;
 pub mod palindrome_products;
 pub mod pangram;
 pub mod pascals_triangle;
+pub mod perfect_numbers;
 pub mod phone_number;
 pub mod pig_latin;
 pub mod queen_attack;
