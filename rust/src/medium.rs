@@ -4,6 +4,7 @@ pub mod alphametics;
 pub mod anagram;
 pub mod bowling;
 pub mod clock;
+pub mod custom_set;
 pub mod grade_school;
 pub mod isbn_verifier;
 pub mod isogram;
