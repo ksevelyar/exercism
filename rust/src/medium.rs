@@ -27,4 +27,5 @@ pub mod simple_linked_list;
 pub mod space_age;
 pub mod sublist;
 pub mod tournament;
+pub mod triangle;
 pub mod word_count;
