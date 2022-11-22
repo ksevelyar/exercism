@@ -6,6 +6,7 @@ pub mod bowling;
 pub mod clock;
 pub mod custom_set;
 pub mod grade_school;
+pub mod hamming;
 pub mod isbn_verifier;
 pub mod isogram;
 pub mod luhn;
