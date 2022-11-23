@@ -18,6 +18,7 @@ pub mod perfect_numbers;
 pub mod phone_number;
 pub mod pig_latin;
 pub mod queen_attack;
+pub mod rna_transcription;
 pub mod robot_name;
 pub mod robot_simulator;
 pub mod rotational_cipher;
