@@ -5,8 +5,8 @@ pub struct SimpleLinkedList<T> {
 }
 
 struct Node<T> {
-   data: T,
-   next: Option<Box<Node<T>>>
+    data: T,
+    next: Option<Box<Node<T>>>,
 }
 
 impl<T> SimpleLinkedList<T> {
@@ -22,8 +22,11 @@ impl<T> SimpleLinkedList<T> {
         unimplemented!()
     }
 
-    pub fn push(&mut self, _element: T) {
-        unimplemented!()
+    pub fn push(&mut self, element: T) {
+        self.head = Some(Box::new(Node {
+            data: element,
+            next: None,
+        }))
     }
 
     pub fn pop(&mut self) -> Option<T> {
@@ -50,4 +53,11 @@ impl<T> From<SimpleLinkedList<T>> for Vec<T> {
     fn from(mut _linked_list: SimpleLinkedList<T>) -> Vec<T> {
         unimplemented!()
     }
+}
+
+#[test]
+fn test_new_list_is_empty() {
+    let list: SimpleLinkedList<u32> = SimpleLinkedList::new();
+
+    assert_eq!(list.len(), 0, "list's length must be 0");
 }

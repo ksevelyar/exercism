@@ -22,6 +22,7 @@ pub mod rna_transcription;
 pub mod robot_name;
 pub mod robot_simulator;
 pub mod rotational_cipher;
+pub mod run_length_encoding;
 pub mod scrabble_score;
 pub mod sieve;
 pub mod simple_linked_list;
