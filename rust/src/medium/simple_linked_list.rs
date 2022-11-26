@@ -23,10 +23,10 @@ impl<T> SimpleLinkedList<T> {
     }
 
     pub fn push(&mut self, element: T) {
-        self.head = Some(Box::new(Node {
+        let new_node = Some(Box::new(Node {
             data: element,
             next: None,
-        }))
+        }));
     }
 
     pub fn pop(&mut self) -> Option<T> {
@@ -60,4 +60,17 @@ fn test_new_list_is_empty() {
     let list: SimpleLinkedList<u32> = SimpleLinkedList::new();
 
     assert_eq!(list.len(), 0, "list's length must be 0");
+}
+
+#[test]
+fn test_push_increments_length() {
+    let mut list: SimpleLinkedList<u32> = SimpleLinkedList::new();
+
+    list.push(1);
+
+    assert_eq!(list.len(), 1, "list's length must be 1");
+
+    list.push(2);
+
+    assert_eq!(list.len(), 2, "list's length must be 2");
 }
