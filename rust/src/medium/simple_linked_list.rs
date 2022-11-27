@@ -1,15 +1,17 @@
 use std::iter::FromIterator;
 
+#[derive(Debug)]
 pub struct SimpleLinkedList<T> {
     head: Option<Box<Node<T>>>,
 }
 
+#[derive(Debug)]
 struct Node<T> {
     data: T,
     next: Option<Box<Node<T>>>,
 }
 
-impl<T> SimpleLinkedList<T> {
+impl<T: std::fmt::Debug> SimpleLinkedList<T> {
     pub fn new() -> Self {
         Self { head: None }
     }
@@ -19,14 +21,22 @@ impl<T> SimpleLinkedList<T> {
     }
 
     pub fn len(&self) -> usize {
-        unimplemented!()
+        dbg!(self);
+        1
     }
 
     pub fn push(&mut self, element: T) {
-        let new_node = Some(Box::new(Node {
+        let new_node = Node {
             data: element,
             next: None,
-        }));
+        };
+
+        match self.head {
+            None => self.head = Some(Box::new(new_node)),
+            Some(ref mut head) => {
+                head.next = Some(Box::new(new_node))
+            }
+        }
     }
 
     pub fn pop(&mut self) -> Option<T> {
