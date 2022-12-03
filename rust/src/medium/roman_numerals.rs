@@ -10,14 +10,32 @@ const ROMAN_ARABIC: [(char, u32); 7] = [
     ('M', 1000),
 ];
 
-pub struct Roman;
+pub struct Roman(String);
 
 impl Display for Roman {
-    fn fmt(&self, _f: &mut Formatter<'_>) -> Result {
-        unimplemented!("Return a roman-numeral string representation of the Roman object");
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{}", self.0)
     }
 }
 
 impl From<u32> for Roman {
-    fn from(num: u32) -> Self {}
+    fn from(num: u32) -> Self {
+        let roman = ROMAN_ARABIC
+            .iter()
+            .filter(|(_roman, arabic)| num % arabic == 0)
+            .map(|(roman, arabic)| roman.to_string().repeat((num / arabic) as usize))
+            .collect();
+
+        Roman(roman)
+    }
+}
+
+#[test]
+fn test_three() {
+    assert_eq!("III", Roman::from(3).to_string());
+}
+
+#[test]
+fn test_four() {
+    assert_eq!("IV", Roman::from(4).to_string());
 }
