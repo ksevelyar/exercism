@@ -1,3 +1,5 @@
+const STRIKE: u16 = 10;
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum Error {
     NotEnoughPinsLeft,
@@ -6,12 +8,12 @@ pub enum Error {
 
 #[derive(Debug)]
 pub struct BowlingGame {
-    pins: Vec<u16>,
+    throws: Vec<u16>,
 }
 
 impl BowlingGame {
     pub fn new() -> Self {
-        Self { pins: Vec::new() }
+        Self { throws: Vec::new() }
     }
 
     pub fn roll(&mut self, pins: u16) -> Result<(), Error> {
@@ -19,11 +21,11 @@ impl BowlingGame {
             return Err(Error::GameComplete);
         };
 
-        if pins > 10 {
+        if pins > STRIKE {
             return Err(Error::NotEnoughPinsLeft);
         };
 
-        self.pins.push(pins);
+        self.throws.push(pins);
         Ok(())
     }
 
@@ -32,20 +34,20 @@ impl BowlingGame {
             return None;
         };
 
-        Some(
-            self.pins
-                .iter()
-                .enumerate()
-                .map(|(ind, x)| match ind > 2 && self.pins[ind - 2] == 10 {
-                    true => *x * 2,
-                    false => *x,
-                })
-                .sum(),
-        )
+        self.throws
+            .iter()
+            .enumerate()
+            .map(|(ind, pins)| match pins {
+                _ if *pins == STRIKE => {
+                    Some(STRIKE + self.throws.get(ind + 1)? + self.throws.get(ind + 2)?)
+                }
+                _ => Some(*pins),
+            })
+            .sum()
     }
 
     fn is_complete(&self) -> bool {
-        self.pins.len() == 20
+        self.throws.len() == 19
     }
 }
 
