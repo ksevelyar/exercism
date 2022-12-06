@@ -38,16 +38,26 @@ impl BowlingGame {
             .iter()
             .enumerate()
             .map(|(ind, pins)| match pins {
-                _ if *pins == STRIKE => {
-                    Some(STRIKE + self.throws.get(ind + 1)? + self.throws.get(ind + 2)?)
-                }
+                _ if *pins == STRIKE => Some(
+                    STRIKE
+                        + self.throws.get(ind + 1).unwrap_or(&0)
+                        + self.throws.get(ind + 2).unwrap_or(&0),
+                ),
                 _ => Some(*pins),
             })
             .sum()
     }
 
     fn is_complete(&self) -> bool {
-        self.throws.len() == 19
+        let acc = self.throws.iter().enumerate().fold(0, |acc, x| match x {
+            (9, 10) => acc,
+            (_, 10) => acc + 2,
+            _ => acc + 1,
+        });
+
+        dbg!(acc);
+
+        acc == 20
     }
 }
 
@@ -80,4 +90,36 @@ fn a_strike_earns_ten_points_in_a_frame_with_a_single_roll() {
     }
 
     assert_eq!(game.score(), Some(10));
+}
+
+#[test]
+fn all_strikes_is_a_perfect_score_of_300() {
+    let mut game = BowlingGame::new();
+
+    for _ in 0..12 {
+        let _ = game.roll(10);
+    }
+
+    assert_eq!(game.score(), Some(300));
+}
+
+#[test]
+fn if_the_last_frame_is_a_strike_you_cannot_score_before_the_extra_rolls_are_taken() {
+    let mut game = BowlingGame::new();
+
+    for _ in 0..18 {
+        let _ = game.roll(0);
+    }
+
+    let _ = game.roll(10);
+
+    assert_eq!(game.score(), None);
+
+    let _ = game.roll(10);
+
+    assert_eq!(game.score(), None);
+
+    let _ = game.roll(10);
+
+    assert!(game.score().is_some());
 }
