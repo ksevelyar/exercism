@@ -8,12 +8,12 @@ pub enum Error {
 
 #[derive(Debug)]
 pub struct BowlingGame {
-    throws: Vec<u16>,
+    frames: Vec<[u16; 3]>,
 }
 
 impl BowlingGame {
     pub fn new() -> Self {
-        Self { throws: Vec::new() }
+        Self { frames: Vec::new() }
     }
 
     pub fn roll(&mut self, pins: u16) -> Result<(), Error> {
@@ -25,7 +25,33 @@ impl BowlingGame {
             return Err(Error::NotEnoughPinsLeft);
         };
 
-        self.throws.push(pins);
+        if self.frames.is_empty() {
+            self.frames.push([pins, 0, 0]);
+            return Ok(());
+        };
+
+        let frame_pins: u16 = self.frames.last().expect("not empty").clone().iter().sum();
+
+        if frame_pins == 10 {
+            self.frames.push([pins, 0, 0]);
+            return Ok(());
+        };
+
+        match self.frames.as_slice() {
+            [head @ .., last] => {
+                let tail = match *last {
+                    [pins0, 0, 0] => [pins0, pins, 0],
+                    [pins0, pins1, 0] => [pins0, pins1, pins],
+                    _ => [0, 0, 0],
+                };
+                self.frames = head.to_vec();
+                self.frames.push(tail);
+
+                return Ok(());
+            }
+            _ => (),
+        }
+
         Ok(())
     }
 
@@ -34,30 +60,24 @@ impl BowlingGame {
             return None;
         };
 
-        self.throws
-            .iter()
-            .enumerate()
-            .map(|(ind, pins)| match pins {
-                _ if *pins == STRIKE => Some(
-                    STRIKE
-                        + self.throws.get(ind + 1).unwrap_or(&0)
-                        + self.throws.get(ind + 2).unwrap_or(&0),
-                ),
-                _ => Some(*pins),
-            })
-            .sum()
+        // self.frames
+        //     .iter()
+        //     .enumerate()
+        //     // TODO: replace ind with frame
+        //     .map(|(ind, pins)| match pins {
+        //         _ if *pins == STRIKE => Some(
+        //             STRIKE
+        //                 + self.frames.get(ind + 1).unwrap_or(&0)
+        //                 + self.frames.get(ind + 2).unwrap_or(&0),
+        //         ),
+        //         _ => Some(*pins),
+        //     })
+        //     .sum()
+        Some(42)
     }
 
     fn is_complete(&self) -> bool {
-        let acc = self.throws.iter().enumerate().fold(0, |acc, x| match x {
-            (9, 10) => acc,
-            (_, 10) => acc + 2,
-            _ => acc + 1,
-        });
-
-        dbg!(acc);
-
-        acc == 20
+        self.frames.len() == 10
     }
 }
 
