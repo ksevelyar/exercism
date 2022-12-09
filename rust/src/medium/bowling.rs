@@ -55,25 +55,31 @@ impl BowlingGame {
         Ok(())
     }
 
+    fn score_frame(frame: &[u16; 3]) -> u16 {
+        frame[0] + frame[1] + frame[2]
+    }
+
     pub fn score(&self) -> Option<u16> {
         if !self.is_complete() {
             return None;
         };
 
-        // self.frames
-        //     .iter()
-        //     .enumerate()
-        //     // TODO: replace ind with frame
-        //     .map(|(ind, pins)| match pins {
-        //         _ if *pins == STRIKE => Some(
-        //             STRIKE
-        //                 + self.frames.get(ind + 1).unwrap_or(&0)
-        //                 + self.frames.get(ind + 2).unwrap_or(&0),
-        //         ),
-        //         _ => Some(*pins),
-        //     })
-        //     .sum()
-        Some(42)
+        self.frames
+            .iter()
+            .enumerate()
+            .map(|(ind, frame)| {
+                let frame_pins = Self::score_frame(frame);
+
+                match (ind, frame_pins) {
+                    (_, 10) if ind < 9 => Some(
+                        STRIKE
+                            + Self::score_frame(self.frames.get(ind + 1).unwrap_or(&[0, 0, 0]))
+                            + Self::score_frame(self.frames.get(ind + 2).unwrap_or(&[0, 0, 0])),
+                    ),
+                    _ => Some(frame_pins),
+                }
+            })
+            .sum()
     }
 
     fn is_complete(&self) -> bool {
