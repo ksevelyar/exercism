@@ -8,7 +8,7 @@ pub enum Error {
 
 #[derive(Debug)]
 pub struct BowlingGame {
-    frames: Vec<[u16; 3]>,
+    frames: Vec<[Option<u16>; 3]>,
 }
 
 impl BowlingGame {
@@ -26,23 +26,30 @@ impl BowlingGame {
         };
 
         if self.frames.is_empty() {
-            self.frames.push([pins, 0, 0]);
+            self.frames.push([Some(pins), None, None]);
             return Ok(());
         };
 
-        let frame_pins: u16 = self.frames.last().expect("not empty").clone().iter().sum();
+        let last_frame = self
+            .frames
+            .last().unwrap();
 
-        if frame_pins == 10 {
-            self.frames.push([pins, 0, 0]);
+        let is_last_frame_closed = match last_frame {
+            [Some(10), _, _] => true,
+            [Some(_), Some(_), _] => true,
+            _ => false
+        };
+        if is_last_frame_closed {
+            self.frames.push([Some(pins), None, None]);
             return Ok(());
         };
 
         match self.frames.as_slice() {
             [head @ .., last] => {
                 let tail = match *last {
-                    [pins0, 0, 0] => [pins0, pins, 0],
-                    [pins0, pins1, 0] => [pins0, pins1, pins],
-                    _ => [0, 0, 0],
+                    [Some(pins0), None, None] => [Some(pins0), Some(pins), None],
+                    [Some(pins0), Some(pins1), None] => [Some(pins0), Some(pins1), Some(pins)],
+                    _ => [Some(pins), None, None],
                 };
                 self.frames = head.to_vec();
                 self.frames.push(tail);
@@ -55,8 +62,11 @@ impl BowlingGame {
         Ok(())
     }
 
-    fn score_frame(frame: &[u16; 3]) -> u16 {
-        frame[0] + frame[1] + frame[2]
+    fn score_frame(frame: Option<&[Option<u16>; 3]>) -> u16 {
+        match frame {
+            Some(frame) => frame[0].unwrap_or(0) + frame[1].unwrap_or(0) + frame[2].unwrap_or(0),
+            None => 0,
+        }
     }
 
     pub fn score(&self) -> Option<u16> {
@@ -68,13 +78,13 @@ impl BowlingGame {
             .iter()
             .enumerate()
             .map(|(ind, frame)| {
-                let frame_pins = Self::score_frame(frame);
+                let frame_pins = Self::score_frame(Some(frame));
 
                 match (ind, frame_pins) {
                     (_, 10) if ind < 9 => Some(
                         STRIKE
-                            + Self::score_frame(self.frames.get(ind + 1).unwrap_or(&[0, 0, 0]))
-                            + Self::score_frame(self.frames.get(ind + 2).unwrap_or(&[0, 0, 0])),
+                            + Self::score_frame(self.frames.get(ind + 1))
+                            + Self::score_frame(self.frames.get(ind + 2)),
                     ),
                     _ => Some(frame_pins),
                 }
