@@ -30,15 +30,16 @@ impl BowlingGame {
             return Ok(());
         };
 
-        let last_frame = self
-            .frames
-            .last().unwrap();
+        let last_frame = self.frames.last().unwrap();
 
         let is_last_frame_closed = match last_frame {
-            [Some(10), _, _] => true,
+            [Some(10), Some(10), _] => self.frames.len() != 10,
+            [Some(10), _, _] => self.frames.len() != 10,
             [Some(_), Some(_), _] => true,
-            _ => false
+            _ => false,
         };
+        dbg!(&last_frame, &self.frames.len());
+
         if is_last_frame_closed {
             self.frames.push([Some(pins), None, None]);
             return Ok(());
@@ -94,7 +95,24 @@ impl BowlingGame {
 
     fn is_complete(&self) -> bool {
         self.frames.len() == 10
+            && match self.frames[9] {
+                [Some(a), Some(b), None] => a + b != 10,
+                _ => false,
+            }
     }
+}
+
+#[test]
+fn ten_frames_without_a_strike_or_spare() {
+    let mut game = BowlingGame::new();
+
+    for _ in 0..10 {
+        let _ = game.roll(3);
+
+        let _ = game.roll(6);
+    }
+
+    assert_eq!(game.score(), Some(90));
 }
 
 #[test]
