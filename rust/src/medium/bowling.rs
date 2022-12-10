@@ -33,12 +33,10 @@ impl BowlingGame {
         let last_frame = self.frames.last().unwrap();
 
         let is_last_frame_closed = match last_frame {
-            [Some(10), Some(10), _] => self.frames.len() != 10,
             [Some(10), _, _] => self.frames.len() != 10,
-            [Some(_), Some(_), _] => true,
+            [Some(a), Some(b), _] => !(self.frames.len() == 10 && a + b == 10),
             _ => false,
         };
-        dbg!(&last_frame, &self.frames.len());
 
         if is_last_frame_closed {
             self.frames.push([Some(pins), None, None]);
@@ -48,7 +46,15 @@ impl BowlingGame {
         match self.frames.as_slice() {
             [head @ .., last] => {
                 let tail = match *last {
+                    [Some(pins0), None, None] if pins0 + pins > 10 && pins0 != 10 => {
+                        return Err(Error::NotEnoughPinsLeft)
+                    }
                     [Some(pins0), None, None] => [Some(pins0), Some(pins), None],
+                    [Some(10), Some(pins1), None]
+                        if (pins == 10 && pins1 != 10) || pins1 != 10 && pins + pins1 > 10 =>
+                    {
+                        return Err(Error::NotEnoughPinsLeft)
+                    }
                     [Some(pins0), Some(pins1), None] => [Some(pins0), Some(pins1), Some(pins)],
                     _ => [Some(pins), None, None],
                 };
@@ -79,25 +85,43 @@ impl BowlingGame {
             .iter()
             .enumerate()
             .map(|(ind, frame)| {
-                let frame_pins = Self::score_frame(Some(frame));
+                let frame_pins = frame.iter().flatten().sum();
+                let frame_throws = frame.iter().flatten().count();
 
-                match (ind, frame_pins) {
-                    (_, 10) if ind < 9 => Some(
-                        STRIKE
-                            + Self::score_frame(self.frames.get(ind + 1))
-                            + Self::score_frame(self.frames.get(ind + 2)),
-                    ),
+                match (frame_throws, frame_pins) {
+                    (1, 10) => {
+                        let next_frame = self.frames.get(ind + 1).unwrap_or(&[None, None, None]);
+
+                        let sum = match next_frame[1] {
+                            None => {
+                                next_frame[0].unwrap()
+                                    + self.frames.get(ind + 2).unwrap_or(&[None, None, None])[0]
+                                        .unwrap_or(0)
+                            }
+                            _ => next_frame[0].unwrap() + next_frame[1].unwrap(),
+                        };
+
+                        Some(10 + sum)
+                    }
+                    (_, 10) => {
+                        let next_frame = self.frames.get(ind + 1).unwrap_or(&[None, None, None]);
+
+                        Some(10 + next_frame[0].unwrap())
+                    }
                     _ => Some(frame_pins),
                 }
             })
+            .into_iter()
             .sum()
     }
 
     fn is_complete(&self) -> bool {
         self.frames.len() == 10
             && match self.frames[9] {
+                [Some(_), None, None] => false,
+                [Some(10), _, None] => false,
                 [Some(a), Some(b), None] => a + b != 10,
-                _ => false,
+                _ => true,
             }
     }
 }
@@ -129,7 +153,6 @@ fn points_scored_in_the_two_rolls_after_a_strike_are_counted_twice_as_a_bonus() 
         let _ = game.roll(0);
     }
 
-    dbg!(&game);
     assert_eq!(game.score(), Some(26));
 }
 
@@ -176,4 +199,125 @@ fn if_the_last_frame_is_a_strike_you_cannot_score_before_the_extra_rolls_are_tak
     let _ = game.roll(10);
 
     assert!(game.score().is_some());
+}
+
+#[test]
+fn a_spare_with_the_two_roll_bonus_does_not_get_a_bonus_roll() {
+    let mut game = BowlingGame::new();
+
+    for _ in 0..18 {
+        let _ = game.roll(0);
+    }
+
+    let _ = game.roll(10);
+
+    let _ = game.roll(7);
+
+    let _ = game.roll(3);
+
+    assert_eq!(game.score(), Some(20));
+}
+
+#[test]
+fn consecutive_strikes_each_get_the_two_roll_bonus() {
+    let mut game = BowlingGame::new();
+
+    let _ = game.roll(10);
+
+    let _ = game.roll(10);
+
+    let _ = game.roll(10);
+
+    let _ = game.roll(5);
+
+    let _ = game.roll(3);
+
+    for _ in 0..12 {
+        let _ = game.roll(0);
+    }
+
+    assert_eq!(game.score(), Some(81));
+}
+
+#[test]
+fn a_strike_with_the_one_roll_bonus_after_a_spare_in_the_last_frame_does_not_get_a_bonus() {
+    let mut game = BowlingGame::new();
+
+    for _ in 0..18 {
+        let _ = game.roll(0);
+    }
+
+    let _ = game.roll(7);
+
+    let _ = game.roll(3);
+
+    let _ = game.roll(10);
+
+    assert_eq!(game.score(), Some(20));
+}
+
+#[test]
+fn consecutive_spares_each_get_a_one_roll_bonus() {
+    let mut game = BowlingGame::new();
+
+    let _ = game.roll(5);
+
+    let _ = game.roll(5);
+
+    let _ = game.roll(3);
+
+    let _ = game.roll(7);
+
+    let _ = game.roll(4);
+
+    for _ in 0..15 {
+        let _ = game.roll(0);
+    }
+
+    assert_eq!(game.score(), Some(31));
+}
+
+#[test]
+fn the_two_balls_after_a_final_strike_cannot_be_a_non_strike_followed_by_a_strike() {
+    let mut game = BowlingGame::new();
+
+    for _ in 0..18 {
+        let _ = game.roll(0);
+    }
+
+    let _ = game.roll(10);
+
+    assert!(game.roll(6).is_ok());
+
+    assert_eq!(game.roll(10), Err(Error::NotEnoughPinsLeft));
+}
+
+#[test]
+fn the_two_balls_after_a_final_strike_cannot_score_an_invalid_number_of_pins() {
+    let mut game = BowlingGame::new();
+
+    for _ in 0..18 {
+        let _ = game.roll(0);
+    }
+
+    let _ = game.roll(10);
+
+    assert!(game.roll(5).is_ok());
+
+    assert_eq!(game.roll(6), Err(Error::NotEnoughPinsLeft));
+}
+
+#[test]
+fn the_two_balls_after_a_final_strike_can_be_a_strike_and_non_strike() {
+    let mut game = BowlingGame::new();
+
+    for _ in 0..18 {
+        let _ = game.roll(0);
+    }
+
+    let _ = game.roll(10);
+
+    assert!(game.roll(10).is_ok());
+
+    assert!(game.roll(6).is_ok());
 }
