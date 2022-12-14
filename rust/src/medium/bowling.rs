@@ -51,7 +51,7 @@ impl BowlingGame {
                     }
                     [Some(pins0), None, None] => [Some(pins0), Some(pins), None],
                     [Some(10), Some(pins1), None]
-                        if (pins == 10 && pins1 != 10) || pins1 != 10 && pins + pins1 > 10 =>
+                        if (pins + pins1 > 10 || pins == 10) && pins1 != 10 =>
                     {
                         return Err(Error::NotEnoughPinsLeft)
                     }

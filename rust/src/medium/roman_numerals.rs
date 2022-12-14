@@ -55,7 +55,7 @@ impl Roman {
                 Roman::letter(factor * 5),
                 Roman::letter(factor).repeat((count - 5) as usize)
             ),
-            9 => format!("{}{}", Roman::letter(factor), Roman::letter(factor * 10)).to_string(),
+            9 => format!("{}{}", Roman::letter(factor), Roman::letter(factor * 10)),
             _ => "".to_string(),
         }
     }
