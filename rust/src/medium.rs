@@ -1,3 +1,4 @@
+pub mod accumulate;
 pub mod acronym;
 pub mod allergies;
 pub mod alphametics;
