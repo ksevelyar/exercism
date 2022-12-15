@@ -1,25 +1,21 @@
-use core::ops::Deref;
-
 pub fn map<F, T, D>(input: Vec<T>, fun: F) -> Vec<D>
 where
-    F: Fn(T) -> D,
-    T: Clone,
+    F: FnMut(T) -> D,
 {
-    map_with_acc(&input, Vec::new(), fun)
+    map_with_acc(input, Vec::new(), fun)
 }
 
-fn map_with_acc<F, T, D>(input: &[T], mut acc: Vec<D>, fun: F) -> Vec<D>
+fn map_with_acc<F, T, D>(mut input: Vec<T>, mut acc: Vec<D>, mut fun: F) -> Vec<D>
 where
-    F: Fn(T) -> D,
-    T: Clone,
+    F: FnMut(T) -> D,
 {
-    match input {
-        [] => acc,
-        [num, rest @ ..] => {
-            acc.push(fun((*num).clone()));
-            map_with_acc(rest, acc, fun)
-        }
+    if input.is_empty() {
+        acc.reverse();
+        return acc;
     }
+
+    acc.push(fun(input.pop().unwrap()));
+    map_with_acc(input, acc, fun)
 }
 
 mod tests {
@@ -63,4 +59,23 @@ fn minimal_bounds_on_input_and_output() {
     struct Bar;
 
     map(vec![Foo], |_| Bar);
+}
+
+#[test]
+fn mutating_closure() {
+    let mut counter = 0;
+
+    let input = vec![-2, 3, 4, -5];
+
+    let expected = vec![2, 3, 4, 5];
+
+    let result = map(input, |x: i64| {
+        counter += 1;
+
+        x.abs()
+    });
+
+    assert_eq!(result, expected);
+
+    assert_eq!(counter, 4);
 }
