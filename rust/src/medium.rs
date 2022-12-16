@@ -3,6 +3,7 @@ pub mod acronym;
 pub mod allergies;
 pub mod alphametics;
 pub mod anagram;
+pub mod book_store;
 pub mod bowling;
 pub mod clock;
 pub mod custom_set;
