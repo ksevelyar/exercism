@@ -14,6 +14,7 @@ pub mod isbn_verifier;
 pub mod isogram;
 pub mod luhn;
 pub mod minesweeper;
+pub mod nucleotide_count;
 pub mod palindrome_products;
 pub mod pangram;
 pub mod pascals_triangle;
