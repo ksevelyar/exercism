@@ -11,9 +11,15 @@ struct Node<T> {
     next: Option<Box<Node<T>>>,
 }
 
+impl<T: std::fmt::Debug> Default for SimpleLinkedList<T> {
+    fn default() -> Self {
+        Self { head: None }
+    }
+}
+
 impl<T: std::fmt::Debug> SimpleLinkedList<T> {
     pub fn new() -> Self {
-        Self { head: None }
+        Self::default()
     }
 
     pub fn is_empty(&self) -> bool {
@@ -33,9 +39,7 @@ impl<T: std::fmt::Debug> SimpleLinkedList<T> {
 
         match self.head {
             None => self.head = Some(Box::new(new_node)),
-            Some(ref mut head) => {
-                head.next = Some(Box::new(new_node))
-            }
+            Some(ref mut head) => head.next = Some(Box::new(new_node)),
         }
     }
 

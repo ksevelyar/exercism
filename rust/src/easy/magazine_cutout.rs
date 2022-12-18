@@ -1,17 +1,18 @@
 use std::collections::HashMap;
 
-pub fn can_construct_note(magazine: &[&str], note: &[&str]) -> bool {
-    let mut cutout_dictionary = HashMap::new();
-    for word in magazine {
-        let counter = cutout_dictionary.entry(word).or_insert(0);
-        *counter += 1;
-    }
+fn counts<'a>(words: &'a [&str]) -> HashMap<&'a str, u32> {
+    words.iter().fold(HashMap::new(), |mut counts, word| {
+        counts
+            .entry(word)
+            .and_modify(|count| *count += 1)
+            .or_insert(0);
+        counts
+    })
+}
 
-    let mut note_dictionary = HashMap::new();
-    for word in note {
-        let counter = note_dictionary.entry(word).or_insert(0);
-        *counter += 1;
-    }
+pub fn can_construct_note(magazine: &[&str], note: &[&str]) -> bool {
+    let cutout_dictionary = counts(magazine);
+    let note_dictionary = counts(note);
 
     note_dictionary.iter().all(
         |(word, word_count_in_note)| match cutout_dictionary.get(word) {

@@ -30,6 +30,7 @@ pub mod rotational_cipher;
 pub mod run_length_encoding;
 pub mod scrabble_score;
 pub mod sieve;
+pub mod simple_cipher;
 pub mod simple_linked_list;
 pub mod space_age;
 pub mod sublist;
