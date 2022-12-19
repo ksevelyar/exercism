@@ -13,7 +13,9 @@ pub fn rotate(input: &str, key: i8) -> String {
     input
         .chars()
         .map(|ch| {
-            if !ch.is_ascii_alphabetic() { return ch }
+            if !ch.is_ascii_alphabetic() {
+                return ch;
+            }
             rotate_char(ch, key)
         })
         .collect()

@@ -10,7 +10,9 @@ impl PascalsTriangle {
     fn row(max_ind: u32, prev_row: Option<&Vec<u32>>) -> Vec<u32> {
         (0..max_ind)
             .map(|x| {
-                if x == 0 || x == max_ind { return 1; }
+                if x == 0 || x == max_ind {
+                    return 1;
+                }
 
                 let prev_row = prev_row.expect("exists for x > 0");
                 prev_row[(x - 1) as usize] + prev_row.get(x as usize).unwrap_or(&0)

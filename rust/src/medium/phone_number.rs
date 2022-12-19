@@ -21,7 +21,9 @@ pub fn number(user_number: &str) -> Option<String> {
     let chars = trim_chars(user_number);
     let is_invalid = is_invalid_area_or_subscriber(chars[ZONE_START], chars[SUBSCRIBER_START]);
 
-    if chars.len() != NANP_LEN || is_invalid { return None }
+    if chars.len() != NANP_LEN || is_invalid {
+        return None;
+    }
 
     Some(chars.iter().collect())
 }

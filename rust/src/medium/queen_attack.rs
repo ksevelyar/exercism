@@ -33,16 +33,28 @@ impl Queen {
 
     fn diag_top_left(rank: i32, file: i32) -> ChessPosition {
         if rank < file {
-            ChessPosition { file: 0, rank: file - rank }
+            ChessPosition {
+                file: 0,
+                rank: file - rank,
+            }
         } else {
-            ChessPosition { file: rank - file, rank: 0 }
+            ChessPosition {
+                file: rank - file,
+                rank: 0,
+            }
         }
     }
     fn diag_bottom_left(rank: i32, file: i32) -> ChessPosition {
         if rank + file > 7 {
-            ChessPosition { file: 7, rank: 7 - rank + file }
+            ChessPosition {
+                file: 7,
+                rank: 7 - rank + file,
+            }
         } else {
-            ChessPosition { file: rank + file, rank: 0 }
+            ChessPosition {
+                file: rank + file,
+                rank: 0,
+            }
         }
     }
 
