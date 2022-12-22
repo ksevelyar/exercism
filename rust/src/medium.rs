@@ -9,6 +9,7 @@ pub mod clock;
 pub mod custom_set;
 pub mod etl;
 pub mod grade_school;
+pub mod grep;
 pub mod hamming;
 pub mod isbn_verifier;
 pub mod isogram;

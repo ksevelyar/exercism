@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 rand = "0.8.5" # easy/diffie_hellman.rs
 time = "0.3" # easy/gigasecond.rs
+anyhow = "1.0" # medium/grep.rs
