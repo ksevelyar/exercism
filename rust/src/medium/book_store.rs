@@ -1,3 +1,17 @@
+const REGULAR_PRICE: u32 = 800;
+
+fn batch_price(num: usize) -> u32 {
+    let discount = match num {
+        2 => REGULAR_PRICE / 100 * 5,
+        3 => REGULAR_PRICE / 100 * 10,
+        4 => REGULAR_PRICE / 100 * 20,
+        5 => REGULAR_PRICE / 100 * 25,
+        _ => 0
+    };
+
+    (REGULAR_PRICE - discount) * num as u32
+}
+
 pub fn lowest_price(books: &[u32]) -> u32 {
     let batch = books.iter().cloned().fold(Vec::new(), |mut acc, book| {
         if !acc.contains(&book) {
@@ -7,15 +21,7 @@ pub fn lowest_price(books: &[u32]) -> u32 {
         acc
     });
 
-    let default = 800;
-    match batch.len() {
-        0 => 0,
-        1 => default,
-        2 => default * 2,
-        3 => default * 3,
-        4 => default * 4,
-        _ => panic!("Batch overflow"),
-    }
+    batch_price(batch.len())
 }
 
 #[test]
