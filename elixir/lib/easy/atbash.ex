@@ -1,29 +1,36 @@
 defmodule Atbash do
   @encode_word_length 5
   @map Enum.zip(?a..?z, ?z..?a) |> Map.new()
+  @allowed_chars Stream.concat(?a..?z, ?0..?9) |> Enum.to_list()
 
   def decode(cipher) do
+    filter_spaces = fn charlist -> Enum.reject(charlist, &(&1 == ?\s)) end
+
     chars =
       cipher
       |> String.downcase()
       |> String.to_charlist()
-      |> Enum.filter(&(&1 != ?\s))
+      |> filter_spaces.()
 
     chars |> Enum.map(&(@map[&1] || &1)) |> Enum.reject(&is_nil/1) |> to_string()
   end
 
   def encode(plaintext) do
+    filter_not_allowed_chars = fn charlist ->
+      Enum.filter(charlist, &Enum.member?(@allowed_chars, &1))
+    end
+
     chars =
       plaintext
       |> String.downcase()
       |> String.to_charlist()
-      |> Enum.filter(&(Enum.member?(?a..?z, &1) || Enum.member?(?0..?9, &1)))
+      |> filter_not_allowed_chars.()
       |> Enum.with_index()
 
-    for({ch, index} <- chars, !is_nil(ch), do: encode_char(ch, index)) |> to_string()
+    chars |> Enum.map(&encode_char/1) |> to_string()
   end
 
-  defp encode_char(ch, index) do
+  defp encode_char({ch, index}) do
     maybe_encoded_char = @map[ch] || ch
     insert_space? = index > 0 and rem(index, @encode_word_length) == 0
 
