@@ -33,6 +33,7 @@ pub mod roman_numerals;
 pub mod rotational_cipher;
 pub mod run_length_encoding;
 pub mod saddle_points;
+pub mod scale_generator;
 pub mod scrabble_score;
 pub mod sieve;
 pub mod simple_cipher;
