@@ -9,8 +9,12 @@ pub struct Scale<'a> {
     intervals: &'a str,
 }
 
-const SHARPS: [&str; 13] = [
-    "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "C",
+const SHARPS: [&str; 12] = [
+    "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#",
+];
+
+const FLATS: [&str; 12] = [
+    "A", "Bb", "B", "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab",
 ];
 
 impl<'a> Scale<'a> {
@@ -26,9 +30,14 @@ impl<'a> Scale<'a> {
     }
 
     pub fn enumerate(&self) -> Vec<String> {
-        let position = SHARPS.iter().position(|x| *x == self.tonic);
+        let notes = match self.tonic {
+            "F" | "Bb" | "Eb" | "Ab" | "Db" | "Gb" => FLATS,
+            _ => SHARPS,
+        };
 
-        SHARPS
+        let position = notes.iter().position(|x| *x == self.tonic);
+
+        notes
             .iter()
             .cycle()
             .skip(position.unwrap())
@@ -60,6 +69,16 @@ mod tests {
             "C",
             &[
                 "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "C",
+            ],
+        );
+    }
+
+    #[test]
+    fn test_chromatic_scale_with_flats() {
+        process_chromatic_case(
+            "F",
+            &[
+                "F", "Gb", "G", "Ab", "A", "Bb", "B", "C", "Db", "D", "Eb", "E", "F",
             ],
         );
     }

@@ -7,7 +7,7 @@ defmodule Prime do
     iter_primes(0, count)
   end
 
-  defp iter_primes(maybe_prime, 0), do: maybe_prime
+  defp iter_primes(prime, 0), do: prime
   defp iter_primes(maybe_prime, count) do
     if prime?(maybe_prime + 1) do
       iter_primes(maybe_prime + 1, count - 1)
