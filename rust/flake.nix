@@ -22,6 +22,7 @@
                 }
               )
               pkg-config
+              cargo-watch
             ];
           };
         }

@@ -6,4 +6,4 @@
 * `cargo fmt`
 
 ## Test
-* cargo test
+* `cargo watch -x test`

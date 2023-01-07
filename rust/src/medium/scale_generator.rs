@@ -32,34 +32,42 @@ impl<'a> Scale<'a> {
         })
     }
 
-    fn step(interval: &char, note: &str, notes: &[&str]) -> String {
-        let shift = match *interval {
-            'm' => 1,
-            'M' => 2,
-            _ => 0,
-        };
-
-        let index = notes.iter().position(|x| *x == note).unwrap() + shift;
-
-        notes.iter().cycle().nth(index).unwrap().to_string()
-    }
-
     pub fn enumerate(&self) -> Vec<String> {
-        let notes = match self.tonic {
-            "F" | "Bb" | "Eb" | "Ab" | "Db" | "Gb" => FLATS,
+        let notes = match self.tonic.to_lowercase().as_str() {
+            "f" | "bb" | "eb" | "ab" | "db" | "gb" | "d" => FLATS,
             _ => SHARPS,
         };
 
-        let start = notes.iter().position(|x| *x == self.tonic).unwrap();
+        let start = notes
+            .iter()
+            .position(|x| *x == self.tonic.to_uppercase())
+            .unwrap();
 
-        notes
+        let intervals = self
+            .intervals
+            .iter()
+            .fold(vec![start], |mut acc, interval| {
+                let last = acc.last().unwrap();
+
+                let shift = last
+                    + match interval {
+                        'm' => 1,
+                        'M' => 2,
+                        _ => panic!(),
+                    };
+
+                acc.push(shift);
+                acc
+            });
+
+        dbg!(notes
             .iter()
             .cycle()
-            .skip(start)
-            .take(self.intervals.len() + 1)
-            .zip([' '].iter().chain(self.intervals.iter()))
-            .map(|(note, interval)| Scale::step(interval, note, &notes))
-            .collect()
+            .take(*intervals.last().unwrap() + 1)
+            .enumerate()
+            .filter(|(ind, _x)| intervals.contains(ind))
+            .map(|(_ind, x)| x.to_string())
+            .collect())
     }
 }
 
@@ -107,5 +115,10 @@ mod tests {
     #[test]
     fn test_major_scale_with_sharps() {
         process_interval_case("G", "MMmMMMm", &["G", "A", "B", "C", "D", "E", "F#", "G"]);
+    }
+
+    #[test]
+    fn test_dorian_mode() {
+        process_interval_case("d", "MmMMMmM", &["D", "E", "F", "G", "A", "B", "C", "D"]);
     }
 }
