@@ -6,7 +6,7 @@ pub struct Error;
 
 pub struct Scale<'a> {
     tonic: &'a str,
-    intervals: &'a str,
+    intervals: Vec<char>,
 }
 
 const SHARPS: [&str; 12] = [
@@ -19,14 +19,29 @@ const FLATS: [&str; 12] = [
 
 impl<'a> Scale<'a> {
     pub fn new(tonic: &'a str, intervals: &'a str) -> Result<Scale<'a>, Error> {
-        Ok(Scale { tonic, intervals })
+        Ok(Scale {
+            tonic,
+            intervals: intervals.chars().collect(),
+        })
     }
 
     pub fn chromatic(tonic: &str) -> Result<Scale, Error> {
         Ok(Scale {
             tonic,
-            intervals: "",
+            intervals: "mmmmmmmmmmmm".chars().collect(),
         })
+    }
+
+    fn step(interval: &char, note: &str, notes: &[&str]) -> String {
+        let shift = match *interval {
+            'm' => 1,
+            'M' => 2,
+            _ => 0,
+        };
+
+        let index = notes.iter().position(|x| *x == note).unwrap() + shift;
+
+        notes.iter().cycle().nth(index).unwrap().to_string()
     }
 
     pub fn enumerate(&self) -> Vec<String> {
@@ -35,14 +50,15 @@ impl<'a> Scale<'a> {
             _ => SHARPS,
         };
 
-        let position = notes.iter().position(|x| *x == self.tonic);
+        let start = notes.iter().position(|x| *x == self.tonic).unwrap();
 
         notes
             .iter()
             .cycle()
-            .skip(position.unwrap())
-            .take(13)
-            .map(|x| x.to_string())
+            .skip(start)
+            .take(self.intervals.len() + 1)
+            .zip([' '].iter().chain(self.intervals.iter()))
+            .map(|(note, interval)| Scale::step(interval, note, &notes))
             .collect()
     }
 }
