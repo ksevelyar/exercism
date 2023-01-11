@@ -1,6 +1,3 @@
-// One common idiom is to define an Error enum which wraps all potential
-// errors. Another common idiom is to use a helper type such as failure::Error
-// which does more or less the same thing but automatically.
 #[derive(Debug)]
 pub struct Error;
 
@@ -33,14 +30,16 @@ impl<'a> Scale<'a> {
     }
 
     pub fn enumerate(&self) -> Vec<String> {
-        let notes = match self.tonic.to_lowercase().as_str() {
-            "f" | "bb" | "eb" | "ab" | "db" | "gb" | "d" => FLATS,
-            _ => SHARPS,
+        let notes = match self.tonic {
+            "C" | "a" => SHARPS,
+            "G" | "D" | "A" | "E" | "B" | "F#" => SHARPS,
+            "e" | "b" | "f#" | "c#" | "g#" | "d#" => SHARPS,
+            _ => FLATS,
         };
 
         let start = notes
             .iter()
-            .position(|x| *x == self.tonic.to_uppercase())
+            .position(|x| *x.to_lowercase() == self.tonic.to_lowercase())
             .unwrap();
 
         let intervals = self
@@ -53,6 +52,7 @@ impl<'a> Scale<'a> {
                     + match interval {
                         'm' => 1,
                         'M' => 2,
+                        'A' => 3,
                         _ => panic!(),
                     };
 
@@ -60,14 +60,14 @@ impl<'a> Scale<'a> {
                 acc
             });
 
-        dbg!(notes
+        notes
             .iter()
             .cycle()
             .take(*intervals.last().unwrap() + 1)
             .enumerate()
             .filter(|(ind, _x)| intervals.contains(ind))
             .map(|(_ind, x)| x.to_string())
-            .collect())
+            .collect()
     }
 }
 
@@ -120,5 +120,19 @@ mod tests {
     #[test]
     fn test_dorian_mode() {
         process_interval_case("d", "MmMMMmM", &["D", "E", "F", "G", "A", "B", "C", "D"]);
+    }
+
+    #[test]
+    fn test_hexatonic() {
+        process_interval_case("Db", "MMMMMM", &["Db", "Eb", "F", "G", "A", "B", "Db"]);
+    }
+
+    #[test]
+    fn test_locrian_mode() {
+        process_interval_case(
+            "g",
+            "mMMmMMM",
+            &["G", "Ab", "Bb", "C", "Db", "Eb", "F", "G"],
+        );
     }
 }
