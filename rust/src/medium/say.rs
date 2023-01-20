@@ -1,31 +1,30 @@
 pub fn encode(n: u64) -> String {
-    let num_string = n.to_string();
-    let length = num_string.len() - 1;
-
-    let vec = num_string.chars().rev().collect::<Vec<_>>();
-    let thousands = vec.chunks(3).rev().collect::<Vec<_>>();
+    let num_vec = n.to_string().chars().rev().collect::<Vec<_>>();
+    let thousands = num_vec.chunks(3).rev();
+    let len = thousands.len();
 
     thousands
-        .into_iter()
         .enumerate()
         .map(|(ind, chars)| {
             let chars = chars.iter().rev().copied().collect::<Vec<_>>();
-            let power = 10u64.pow((length - ind) as u32);
+            let power = 1000u64.pow((len - ind - 1) as u32);
 
-            dbg!(&chars);
             match chars.as_slice() {
-                [a, '0', '0'] => format!("{}{}", say_number(&[*a]), say_thousands(power)),
+                ['0', '0', '0'] => "".to_string(),
+                [a, '0', '0'] => format!("{}{}", say_number(&[*a]), say_thousands(power * 100)),
+                ['0', '0', c] => format!("{}{}", say_number(&[*c]), say_thousands(power)),
+                ['0', a, b] => format!("{}{}", say_number(&[*a, *b]), say_thousands(power)),
                 [a, b, c] => format!(
-                    "{}{} {}",
+                    "{} hundred {}{}",
                     say_number(&[*a]),
-                    say_thousands(power),
-                    say_number(&[*b, *c])
+                    say_number(&[*b, *c]),
+                    say_thousands(power)
                 ),
                 ['0'] => "zero".to_string(),
                 _ => format!("{}{}", say_number(&chars), say_thousands(power)),
             }
         })
-        .filter(|x| dbg!(x) != " " && x != "")
+        .filter(|x| !x.is_empty())
         .collect::<Vec<_>>()
         .join(" ")
 }
@@ -62,18 +61,20 @@ fn say_number(chars: &[char]) -> String {
         ['9', n] => format!("ninety-{}", say_number(&[*n])),
         ['0', '0'] => "".to_string(),
         ['0', n] => say_number(&[*n]),
-        _ => format!(""),
+        _ => "".to_string(),
     }
 }
 
-fn say_thousands(count: u64) -> String {
+fn say_thousands(count: u64) -> &'static str {
     match count {
-        100 => " hundred".to_string(),
-        1000 => " thousand".to_string(),
-        1000_000 => " million".to_string(),
-        1000_000_000 => " billion".to_string(),
-        1000_000_000_000 => " trillion".to_string(),
-        _ => "".to_string(),
+        100 => " hundred",
+        1_000 => " thousand",
+        1_000_000 => " million",
+        1_000_000_000 => " billion",
+        1_000_000_000_000 => " trillion",
+        1_000_000_000_000_000 => " quadrillion",
+        1_000_000_000_000_000_000 => " quintillion",
+        _ => "",
     }
 }
 
@@ -118,4 +119,30 @@ fn test_one_thousand_two_hundred_thirty_four() {
 #[test]
 fn test_one_million_two() {
     assert_eq!(encode(1_000_002), String::from("one million two"));
+}
+
+#[test]
+fn test_1002345() {
+    assert_eq!(
+        encode(1_002_345),
+        String::from("one million two thousand three hundred forty-five")
+    );
+}
+
+#[test]
+fn test_eight_hundred_and_ten_thousand() {
+    assert_eq!(encode(810_000), String::from("eight hundred ten thousand"));
+}
+
+#[test]
+fn test_max_u64() {
+    assert_eq!(
+        encode(18_446_744_073_709_551_615),
+        String::from(
+            "eighteen quintillion four hundred forty-six \
+             quadrillion seven hundred forty-four trillion \
+             seventy-three billion seven hundred nine million \
+             five hundred fifty-one thousand six hundred fifteen"
+        )
+    );
 }
