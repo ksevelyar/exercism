@@ -16,6 +16,7 @@ pub mod grep;
 pub mod hamming;
 pub mod isbn_verifier;
 pub mod isogram;
+pub mod largest_series_product;
 pub mod luhn;
 pub mod luhn_from;
 pub mod minesweeper;
