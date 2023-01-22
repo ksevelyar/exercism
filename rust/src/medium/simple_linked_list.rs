@@ -26,9 +26,18 @@ impl<T: std::fmt::Debug> SimpleLinkedList<T> {
         self.head.is_none()
     }
 
+    fn recursive_len(node: &Node<T>, count: usize) -> usize {
+        match &node.next {
+            None => count,
+            Some(node) => Self::recursive_len(&node, count + 1),
+        }
+    }
+
     pub fn len(&self) -> usize {
-        dbg!(self);
-        1
+        match &self.head {
+            None => 0,
+            Some(node) => Self::recursive_len(node, 1),
+        }
     }
 
     pub fn push(&mut self, element: T) {
@@ -87,4 +96,21 @@ fn test_push_increments_length() {
     list.push(2);
 
     assert_eq!(list.len(), 2, "list's length must be 2");
+}
+
+#[test]
+fn test_pop_decrements_length() {
+    let mut list: SimpleLinkedList<u32> = SimpleLinkedList::new();
+
+    list.push(1);
+
+    list.push(2);
+
+    list.pop();
+
+    assert_eq!(list.len(), 1, "list's length must be 1");
+
+    list.pop();
+
+    assert_eq!(list.len(), 0, "list's length must be 0");
 }
