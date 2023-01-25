@@ -46,4 +46,5 @@ pub mod space_age;
 pub mod sublist;
 pub mod tournament;
 pub mod triangle;
+pub mod two_buckets;
 pub mod word_count;

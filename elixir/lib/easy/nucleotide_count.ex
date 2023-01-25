@@ -1,6 +1,4 @@
 defmodule NucleotideCount do
-  @nucleotides [?A, ?C, ?G, ?T]
-
   @doc """
   Counts individual nucleotides in a DNA strand.
 
@@ -25,7 +23,9 @@ defmodule NucleotideCount do
   %{?A => 4, ?T => 1, ?C => 0, ?G => 0}
   """
   def histogram(strand) do
-    Enum.reduce(strand, %{?A => 0, ?T => 0, ?C => 0, ?G => 0}, fn nucleotide, acc ->
+    template = %{?A => 0, ?T => 0, ?C => 0, ?G => 0}
+
+    Enum.reduce(strand, template, fn nucleotide, acc ->
       %{acc | nucleotide => acc[nucleotide] + 1}
     end)
   end
