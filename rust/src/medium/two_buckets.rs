@@ -23,15 +23,32 @@ fn pour_from_big_to_small() -> Option<BucketStats> {
     })
 }
 
-fn pour_from_small_to_big() -> Option<BucketStats> {
-    let moves = 42;
-    let other_bucket = 42;
+fn pour_from_small_to_big(
+    capacity_1: u8,
+    capacity_2: u8,
+    goal: u8,
+    b1: u8,
+    b2: u8,
+    moves: u8,
+) -> Option<BucketStats> {
+    if b1 == goal {
+        return Some(BucketStats {
+            moves,
+            goal_bucket: Bucket::One,
+            other_bucket: b2,
+        });
+    }
 
-    Some(BucketStats {
-        moves,
-        goal_bucket: Bucket::One,
-        other_bucket,
-    })
+    match (b1, b2) {
+        (0, b) => pour_from_small_to_big(capacity_1, capacity_2, goal, capacity_1, b, moves + 1),
+        (a, b) if a + b <= capacity_2 => {
+            pour_from_small_to_big(capacity_1, capacity_2, goal, 0, a + b, moves + 1)
+        }
+        (a, b) if a - goal + b == capacity_2 => {
+            pour_from_small_to_big(capacity_1, capacity_2, goal, goal, a + b - goal, moves + 1)
+        }
+        _ => None,
+    }
 }
 
 pub fn solve(
@@ -46,7 +63,7 @@ pub fn solve(
     };
 
     match is_small_to_big_direction {
-        true => pour_from_small_to_big(),
+        true => pour_from_small_to_big(capacity_1, capacity_2, goal, 0, 0, 0),
         false => pour_from_big_to_small(),
     }
 }
