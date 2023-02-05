@@ -48,3 +48,4 @@ pub mod tournament;
 pub mod triangle;
 pub mod two_buckets;
 pub mod word_count;
+pub mod wordy;
