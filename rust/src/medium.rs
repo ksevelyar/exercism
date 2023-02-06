@@ -5,6 +5,7 @@ pub mod allergies;
 pub mod alphametics;
 pub mod anagram;
 pub mod atbash_cipher;
+pub mod binary_search;
 pub mod book_store;
 pub mod bowling;
 pub mod clock;
