@@ -44,6 +44,7 @@ pub mod sieve;
 pub mod simple_cipher;
 pub mod simple_linked_list;
 pub mod space_age;
+pub mod spiral_matrix;
 pub mod sublist;
 pub mod tournament;
 pub mod triangle;
