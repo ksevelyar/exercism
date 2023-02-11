@@ -29,6 +29,7 @@ pub mod pascals_triangle;
 pub mod perfect_numbers;
 pub mod phone_number;
 pub mod pig_latin;
+pub mod pythagorean_triplet;
 pub mod queen_attack;
 pub mod rna_transcription;
 pub mod robot_name;
