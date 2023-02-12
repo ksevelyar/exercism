@@ -11,13 +11,13 @@ struct Node<T> {
     next: Option<Box<Node<T>>>,
 }
 
-impl<T: std::fmt::Debug> Default for SimpleLinkedList<T> {
+impl<T> Default for SimpleLinkedList<T> {
     fn default() -> Self {
         Self { head: None }
     }
 }
 
-impl<T: std::fmt::Debug> SimpleLinkedList<T> {
+impl<T> SimpleLinkedList<T> {
     pub fn new() -> Self {
         Self::default()
     }
@@ -86,21 +86,39 @@ impl<T: std::fmt::Debug> SimpleLinkedList<T> {
         Some(Self::recursive_peek(&*self.head.as_ref()?))
     }
 
-    #[must_use]
-    pub fn rev(self) -> SimpleLinkedList<T> {
-        unimplemented!()
+    pub fn rev(mut self) -> SimpleLinkedList<T> {
+        let mut linked_list = SimpleLinkedList::new();
+
+        while let Some(i) = self.pop() {
+            linked_list.push(i)
+        }
+
+        linked_list
     }
 }
 
 impl<T> FromIterator<T> for SimpleLinkedList<T> {
-    fn from_iter<I: IntoIterator<Item = T>>(_iter: I) -> Self {
-        unimplemented!()
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+        let mut linked_list = SimpleLinkedList::new();
+
+        for i in iter {
+            linked_list.push(i);
+        }
+
+        linked_list
     }
 }
 
 impl<T> From<SimpleLinkedList<T>> for Vec<T> {
-    fn from(mut _linked_list: SimpleLinkedList<T>) -> Vec<T> {
-        unimplemented!()
+    fn from(mut linked_list: SimpleLinkedList<T>) -> Vec<T> {
+        let mut v = vec![];
+
+        while let Some(i) = linked_list.pop() {
+            v.push(i)
+        }
+
+        v.reverse();
+        v
     }
 }
 
