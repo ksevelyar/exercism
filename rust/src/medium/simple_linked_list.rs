@@ -33,6 +33,29 @@ impl<T: std::fmt::Debug> SimpleLinkedList<T> {
         }
     }
 
+    fn recursive_peek(node: &Node<T>) -> &T {
+        match &node.next {
+            None => &node.data,
+            Some(node) => Self::recursive_peek(&node),
+        }
+    }
+
+    fn recursive_push(node: &mut Node<T>, new_node: Node<T>) {
+        match &mut node.next {
+            None => node.next = Some(Box::new(new_node)),
+            Some(node) => Self::recursive_push(node, new_node),
+        }
+    }
+
+    fn recursive_pop(node: &mut Node<T>) -> Option<T> {
+        let is_end_reached = node.next.as_ref()?.next.is_none();
+
+        match is_end_reached {
+            true => Some(node.next.take()?.data),
+            false => Self::recursive_pop(&mut *node.next.as_mut()?),
+        }
+    }
+
     pub fn len(&self) -> usize {
         match &self.head {
             None => 0,
@@ -46,18 +69,21 @@ impl<T: std::fmt::Debug> SimpleLinkedList<T> {
             next: None,
         };
 
-        match self.head {
+        match &mut self.head {
             None => self.head = Some(Box::new(new_node)),
-            Some(ref mut head) => head.next = Some(Box::new(new_node)),
+            Some(node) => Self::recursive_push(node, new_node),
         }
     }
 
     pub fn pop(&mut self) -> Option<T> {
-        unimplemented!()
+        match &self.head.as_ref()?.next {
+            None => Some(self.head.take()?.data),
+            Some(_) => Self::recursive_pop(&mut *self.head.as_mut()?),
+        }
     }
 
     pub fn peek(&self) -> Option<&T> {
-        unimplemented!()
+        Some(Self::recursive_peek(&*self.head.as_ref()?))
     }
 
     #[must_use]
@@ -113,4 +139,29 @@ fn test_pop_decrements_length() {
     list.pop();
 
     assert_eq!(list.len(), 0, "list's length must be 0");
+}
+
+#[test]
+fn test_peek_returns_reference_to_head_element_but_does_not_remove_it() {
+    let mut list: SimpleLinkedList<u32> = SimpleLinkedList::new();
+
+    assert_eq!(list.peek(), None, "No element should be contained in list");
+
+    list.push(2);
+
+    assert_eq!(list.peek(), Some(&2), "Element must be 2");
+
+    assert_eq!(list.peek(), Some(&2), "Element must be still 2");
+
+    list.push(3);
+
+    assert_eq!(list.peek(), Some(&3), "Head element is now 3");
+
+    assert_eq!(list.pop(), Some(3), "Element must be 3");
+
+    assert_eq!(list.peek(), Some(&2), "Head element is now 2");
+
+    assert_eq!(list.pop(), Some(2), "Element must be 2");
+
+    assert_eq!(list.peek(), None, "No element should be contained in list");
 }
