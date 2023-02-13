@@ -29,14 +29,14 @@ impl<T> SimpleLinkedList<T> {
     fn recursive_len(node: &Node<T>, count: usize) -> usize {
         match &node.next {
             None => count,
-            Some(node) => Self::recursive_len(&node, count + 1),
+            Some(node) => Self::recursive_len(node, count + 1),
         }
     }
 
     fn recursive_peek(node: &Node<T>) -> &T {
         match &node.next {
             None => &node.data,
-            Some(node) => Self::recursive_peek(&node),
+            Some(node) => Self::recursive_peek(node),
         }
     }
 

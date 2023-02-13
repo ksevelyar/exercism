@@ -1,10 +1,13 @@
 use std::collections::HashSet;
 
 pub fn find(sum: u32) -> HashSet<[u32; 3]> {
-    (1..(sum / 2))
-        .flat_map(|a| (a..sum).flat_map(move |b| (b..(sum/2)).map(move |c| [a, b, c])))
-        .filter(|triplet| triplet[0] < triplet[1] && triplet[1] < triplet[2])
-        .filter(|triplet| triplet[0].pow(2) + triplet[1].pow(2) == triplet[2].pow(2))
+    (1..(sum / 3))
+        .flat_map(|a| {
+            ((a + 1)..(sum / 2))
+                .take_while(move |b| a + b < sum)
+                .map(move |b| [a, b, sum - a - b])
+                .filter(|[a, b, c]| a.pow(2) + b.pow(2) == c.pow(2))
+        })
         .collect()
 }
 
