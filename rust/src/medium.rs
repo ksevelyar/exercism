@@ -12,6 +12,7 @@ pub mod clock;
 pub mod custom_set;
 pub mod dot_dsl;
 pub mod etl;
+pub mod fizzy;
 pub mod grade_school;
 pub mod grep;
 pub mod hamming;
