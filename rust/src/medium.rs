@@ -32,6 +32,7 @@ pub mod phone_number;
 pub mod pig_latin;
 pub mod pythagorean_triplet;
 pub mod queen_attack;
+pub mod rail_fence_cipher;
 pub mod rna_transcription;
 pub mod robot_name;
 pub mod robot_simulator;
