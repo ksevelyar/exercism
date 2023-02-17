@@ -5,12 +5,18 @@ impl RailFence {
         RailFence(rails)
     }
 
-    pub fn encode(&self, text: &str) -> String {
-        let chars = text
-            .chars()
-            .zip(((1..=self.0).chain((2..self.0).rev())).cycle());
+    fn sequence(&self) -> impl Iterator<Item = u32> + Clone {
+        (0..self.0).chain((1..(self.0 - 1)).rev()).cycle()
+    }
 
-        (1..=self.0)
+    fn rows(&self) -> impl Iterator<Item = u32> {
+        0..self.0
+    }
+
+    pub fn encode(&self, text: &str) -> String {
+        let chars = text.chars().zip(self.sequence());
+
+        self.rows()
             .flat_map(|rail| {
                 chars
                     .clone()
@@ -21,33 +27,25 @@ impl RailFence {
     }
 
     pub fn decode(&self, cipher: &str) -> String {
-        let mut positions: Vec<_> = ((1..=self.0).chain((2..self.0).rev()))
-            .cycle()
-            .take(cipher.chars().count())
-            .collect();
+        let mut positions: Vec<_> = self.sequence().take(cipher.len()).collect();
         positions.sort_unstable();
+        let chars = &positions.iter().zip(cipher.chars());
 
-        let rows = &positions.iter().zip(cipher.chars());
-
-        let mut d = (1..=self.0)
+        let mut rows_with_chars = self
+            .rows()
             .map(|rail| {
-                rows.clone()
-                    .filter(move |(char_rail, ch)| **char_rail == rail)
+                chars
+                    .clone()
+                    .filter(move |(char_rail, _ch)| **char_rail == rail)
                     .map(|(_, ch)| ch)
                     .collect::<Vec<_>>()
             })
             .collect::<Vec<_>>();
+        rows_with_chars.iter_mut().for_each(|row| row.reverse());
 
-        ((0..self.0).chain((1..(self.0 - 1)).rev()))
-            .cycle()
-            .take(cipher.chars().count())
-            .map(|row| {
-                dbg!(row);
-                d[row as usize].pop().unwrap()
-            })
-            .collect::<Vec<_>>()
-            .iter()
-            .rev()
+        self.sequence()
+            .take(cipher.len())
+            .map(|row| (rows_with_chars[row as usize]).pop().unwrap())
             .collect()
     }
 }
@@ -90,5 +88,14 @@ mod tests {
     #[test]
     fn test_decode_with_five_rails() {
         process_decode_case("EIEXMSMESAORIWSCE", 5, "EXERCISMISAWESOME");
+    }
+
+    #[test]
+    fn test_decode_with_six_rails() {
+        process_decode_case(
+            "133714114238148966225439541018335470986172518171757571896261",
+            6,
+            "112358132134558914423337761098715972584418167651094617711286",
+        );
     }
 }
