@@ -23,6 +23,7 @@ pub mod isogram;
 pub mod largest_series_product;
 pub mod luhn;
 pub mod luhn_from;
+pub mod luhn_trait;
 pub mod minesweeper;
 pub mod nucleotide_count;
 pub mod paas_io;
