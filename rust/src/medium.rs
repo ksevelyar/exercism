@@ -1,6 +1,7 @@
 pub mod accumulate;
 pub mod acronym;
 pub mod affine_cipher;
+pub mod all_your_base;
 pub mod allergies;
 pub mod alphametics;
 pub mod anagram;
