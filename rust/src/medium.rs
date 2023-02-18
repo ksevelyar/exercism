@@ -11,6 +11,7 @@ pub mod book_store;
 pub mod bowling;
 pub mod clock;
 pub mod custom_set;
+pub mod diamond;
 pub mod dot_dsl;
 pub mod etl;
 pub mod fizzy;
