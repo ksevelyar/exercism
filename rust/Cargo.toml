@@ -9,3 +9,4 @@ edition = "2021"
 rand = "0.8.5" # easy/diffie_hellman.rs
 time = "0.3" # easy/gigasecond.rs
 anyhow = "1.0" # medium/grep.rs
+num-bigint = "0.4.3" # medium/decimal.rs
