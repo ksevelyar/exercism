@@ -1,22 +1,27 @@
+use num_bigint::BigInt;
 use std::ops::Add;
 use std::ops::Mul;
 use std::ops::Sub;
-use num_bigint::BigInt;
 
 #[derive(PartialEq, PartialOrd, Debug)]
 pub struct Decimal {
     a: BigInt,
     b: BigInt,
+    b_exp: BigInt,
 }
 
 impl Decimal {
     pub fn try_from(input: &str) -> Option<Decimal> {
-        let mut v = input.split('.').map(|string| string.parse::<BigInt>().ok());
+        let (a, b, b_exp): (BigInt, BigInt, BigInt) = match input.split_once('.') {
+            Some((a, b)) => {
+                let exp = b.chars().take_while(|ch| *ch == '0').count();
 
-        Some(Decimal {
-            a: v.next()??,
-            b: v.next()??,
-        })
+                (a.parse().ok()?, b.parse().ok()?, exp.into())
+            }
+            None => (input.parse().ok()?, BigInt::default(), 1.into()),
+        };
+
+        Some(Decimal { a, b, b_exp })
     }
 }
 
@@ -27,31 +32,32 @@ impl Add for Decimal {
         Self {
             a: self.a + other.a,
             b: self.b + other.b,
+            b_exp: 0.into(),
         }
     }
 }
 
-impl Mul for Decimal {
-    type Output = Self;
-
-    fn mul(self, other: Self) -> Self {
-        Self {
-            a: self.a * other.a,
-            b: self.b * other.b,
-        }
-    }
-}
-
-impl Sub for Decimal {
-    type Output = Self;
-
-    fn sub(self, other: Self) -> Self {
-        Self {
-            a: self.a - other.a,
-            b: self.b - other.b,
-        }
-    }
-}
+// impl Mul for Decimal {
+//     type Output = Self;
+//
+//     fn mul(self, other: Self) -> Self {
+//         Self {
+//             a: self.a * other.a,
+//             b: self.b * other.b,
+//         }
+//     }
+// }
+//
+// impl Sub for Decimal {
+//     type Output = Self;
+//
+//     fn sub(self, other: Self) -> Self {
+//         Self {
+//             a: self.a - other.a,
+//             b: self.b - other.b,
+//         }
+//     }
+// }
 
 #[cfg(test)]
 mod tests {
@@ -106,5 +112,21 @@ mod tests {
         assert_eq!(decimal(BIGS[0]) + decimal(BIGS[1]), decimal(BIGS[2]));
 
         assert_eq!(decimal(BIGS[1]) + decimal(BIGS[0]), decimal(BIGS[2]));
+    }
+
+    #[test]
+    fn test_add_away_decimal() {
+        assert_eq!(decimal("1.1") + decimal("-0.1"), decimal("1.0"))
+    }
+
+    #[test]
+    fn test_sub_borrow() {
+        dbg!(decimal("0.0001"));
+        // assert_eq!(decimal("0.01") - decimal("0.0001"), decimal("0.0099"))
+    }
+
+    #[test]
+    fn test_add_borrow_integral() {
+        assert_eq!(decimal("1.0") + decimal("-0.01"), decimal("0.99"))
     }
 }
