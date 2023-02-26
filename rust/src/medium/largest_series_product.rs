@@ -5,8 +5,12 @@ pub enum Error {
 }
 
 pub fn lsp(string_digits: &str, span: usize) -> Result<u64, Error> {
-    if span > string_digits.len() { return Err(Error::SpanTooLong) }
-    if span == 0 { return Ok(1) }
+    if span > string_digits.len() {
+        return Err(Error::SpanTooLong);
+    }
+    if span == 0 {
+        return Ok(1);
+    }
 
     let digits: Result<Vec<_>, Error> = string_digits
         .chars()

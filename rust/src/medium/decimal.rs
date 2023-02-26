@@ -7,18 +7,22 @@ use std::ops::Sub;
 pub struct Decimal {
     a: BigInt,
     b: BigInt,
-    b_exp: BigInt,
+    b_exp: i32,
 }
 
 impl Decimal {
     pub fn try_from(input: &str) -> Option<Decimal> {
-        let (a, b, b_exp): (BigInt, BigInt, BigInt) = match input.split_once('.') {
+        let (a, b, b_exp): (BigInt, BigInt, i32) = match input.split_once('.') {
             Some((a, b)) => {
-                let exp = b.chars().take_while(|ch| *ch == '0').count();
+                let b_exp = b.chars().take_while(|ch| *ch == '0').count();
+                let exp = match a {
+                    "0" => b_exp + 1,
+                    _ => b_exp,
+                };
 
-                (a.parse().ok()?, b.parse().ok()?, exp.into())
+                (a.parse().ok()?, b.parse().ok()?, exp as i32)
             }
-            None => (input.parse().ok()?, BigInt::default(), 1.into()),
+            None => (input.parse().ok()?, BigInt::default(), 1),
         };
 
         Some(Decimal { a, b, b_exp })
@@ -29,10 +33,25 @@ impl Add for Decimal {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
+        let exp_diff = (self.b_exp - other.b_exp).abs();
+        let exp = BigInt::try_from(10u32).unwrap().pow(exp_diff as u32);
+
+        let sum = if self.b_exp < other.b_exp {
+            (self.a + self.b) * exp.clone() + (other.a * exp.clone() + other.b)
+        } else {
+            (self.a * exp.clone() + self.b) + (other.a + other.b) * exp.clone()
+        };
+
+        let a = sum.clone() / exp.clone();
+        let b_exp = match &a {
+            x if *x == BigInt::try_from(0u32).unwrap() => exp_diff + 1,
+            _ => exp_diff,
+        };
+
         Self {
-            a: self.a + other.a,
-            b: self.b + other.b,
-            b_exp: 0.into(),
+            a,
+            b: sum % exp,
+            b_exp,
         }
     }
 }
@@ -47,17 +66,33 @@ impl Add for Decimal {
 //         }
 //     }
 // }
-//
-// impl Sub for Decimal {
-//     type Output = Self;
-//
-//     fn sub(self, other: Self) -> Self {
-//         Self {
-//             a: self.a - other.a,
-//             b: self.b - other.b,
-//         }
-//     }
-// }
+
+impl Sub for Decimal {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self {
+        let exp_diff = (self.b_exp - other.b_exp).abs();
+        let exp = BigInt::try_from(10u32).unwrap().pow(exp_diff as u32);
+
+        let sum = if self.b_exp < other.b_exp {
+            (self.a + self.b) * exp.clone() - (other.a * exp.clone() + other.b)
+        } else {
+            (self.a * exp.clone() + self.b) - (other.a + other.b) * exp.clone()
+        };
+
+        let a = sum.clone() / exp.clone();
+        let b_exp = match &a {
+            x if *x == BigInt::try_from(0u32).unwrap() => exp_diff + 1,
+            _ => exp_diff,
+        };
+
+        Self {
+            a,
+            b: sum % exp,
+            b_exp,
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -121,8 +156,7 @@ mod tests {
 
     #[test]
     fn test_sub_borrow() {
-        dbg!(decimal("0.0001"));
-        // assert_eq!(decimal("0.01") - decimal("0.0001"), decimal("0.0099"))
+        assert_eq!(decimal("0.01") - decimal("0.0001"), decimal("0.0099"))
     }
 
     #[test]

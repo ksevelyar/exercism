@@ -43,7 +43,7 @@ fn is_coprime(a: i32, m: i32) -> bool {
 }
 
 fn encode_char(ch: char, a: i32, b: i32) -> char {
-    let alphabet = ('a'..='z').enumerate();
+    let mut alphabet = ('a'..='z').enumerate();
 
     if char::is_digit(ch, 10) {
         return ch;
@@ -58,7 +58,6 @@ fn encode_char(ch: char, a: i32, b: i32) -> char {
     let shift = (a as usize * index + b as usize) % 26;
 
     alphabet
-        .clone()
         .find(|(ind, _b)| *ind == shift)
         .map(|(_a, b)| b)
         .expect("unknown index")
@@ -71,7 +70,7 @@ fn modular_multiplicative_inverse(a: i32) -> i32 {
 }
 
 fn decode_char(ch: char, a: i32, b: i32) -> char {
-    let alphabet = ('a'..='z').enumerate();
+    let mut alphabet = ('a'..='z').enumerate();
 
     if char::is_digit(ch, 10) {
         return ch;
@@ -84,10 +83,8 @@ fn decode_char(ch: char, a: i32, b: i32) -> char {
         .expect("unknown char");
 
     let shift = (modular_multiplicative_inverse(a) * (index as i32 - b)).rem_euclid(26);
-    dbg!(shift);
 
     alphabet
-        .clone()
         .find(|(ind, _b)| *ind == shift as usize)
         .map(|(_a, b)| b)
         .expect("unknown index")
