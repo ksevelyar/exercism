@@ -6,7 +6,7 @@ use std::ops::Sub;
 #[derive(PartialEq, PartialOrd, Debug)]
 pub struct Decimal {
     numerator: BigInt,
-    denumerator: BigInt
+    denumerator: BigInt,
 }
 
 impl Decimal {
@@ -16,7 +16,7 @@ impl Decimal {
                 let b_exp = b.chars().count();
                 let exp = match a {
                     "0" => BigInt::try_from(10u32).unwrap().pow(b_exp as u32),
-                    _ => BigInt::try_from(10u32).unwrap().pow(b_exp as u32 - 1),
+                    _ => BigInt::try_from(10u32).unwrap().pow(b_exp as u32),
                 };
 
                 (a.parse().ok()?, b.parse().ok()?, exp)
@@ -24,7 +24,12 @@ impl Decimal {
             None => (input.parse().ok()?, BigInt::default(), BigInt::default()),
         };
 
-        Some(Decimal{numerator: (a + b) * b_exp.clone(), denumerator: b_exp})
+        dbg!(&a, &b);
+        let sign = if input.starts_with('-') { -1 } else { 1 };
+        Some(Decimal {
+            numerator: sign * (a * b_exp.clone() + b),
+            denumerator: b_exp,
+        })
     }
 }
 
@@ -32,7 +37,32 @@ impl Add for Decimal {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
-        todo!()
+        if &self.denumerator == &other.denumerator {
+            dbg!(&other, &self);
+            return Decimal {
+                numerator: &self.numerator + &other.numerator,
+                denumerator: self.denumerator,
+            };
+        }
+
+        match (&self.denumerator, &other.denumerator) {
+            (a, b) if a > b => {
+                let k = &self.denumerator / &other.denumerator;
+
+                Decimal {
+                    numerator: self.numerator + other.numerator * k,
+                    denumerator: self.denumerator,
+                }
+            }
+            (_a, _b) => {
+                let k = &other.denumerator / &self.denumerator;
+
+                Decimal {
+                    numerator: self.numerator * k + other.numerator,
+                    denumerator: other.denumerator,
+                }
+            }
+        }
     }
 }
 
@@ -100,25 +130,30 @@ mod tests {
 
     #[test]
     fn test_add() {
-        assert_eq!(dbg!(decimal("0.1")) + decimal("0.2"), decimal("0.3"));
+        assert_eq!(decimal("0.1") + decimal("0.2"), decimal("0.3"));
 
         assert_eq!(decimal(BIGS[0]) + decimal(BIGS[1]), decimal(BIGS[2]));
 
         assert_eq!(decimal(BIGS[1]) + decimal(BIGS[0]), decimal(BIGS[2]));
     }
 
-    // #[test]
-    // fn test_add_away_decimal() {
-    //     assert_eq!(decimal("1.1") + decimal("-0.1"), decimal("1.0"))
-    // }
+    #[test]
+    fn test_add_away_decimal() {
+        assert_eq!(decimal("1.1") + decimal("-0.1"), decimal("1.0"));
+    }
 
     #[test]
     fn test_sub_borrow() {
         assert_eq!(decimal("0.01") - decimal("0.0001"), decimal("0.0099"))
     }
 
-    // #[test]
-    // fn test_add_borrow_integral() {
-    //     assert_eq!(decimal("1.0") + decimal("-0.01"), decimal("0.99"))
-    // }
+    #[test]
+    fn test_add_borrow_integral() {
+        assert_eq!(decimal("1.0") + decimal("-0.01"), decimal("0.99"))
+    }
+
+    #[test]
+    fn test_add_carry_over_negative() {
+        assert_eq!(decimal("-1.99") + decimal("-0.01"), decimal("-2.0"))
+    }
 }
