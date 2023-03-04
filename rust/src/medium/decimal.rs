@@ -24,10 +24,13 @@ impl Decimal {
             None => (input.parse().ok()?, BigInt::default(), BigInt::default()),
         };
 
-        dbg!(&a, &b);
-        let sign = if input.starts_with('-') { -1 } else { 1 };
+        let sum = match input.starts_with('-') {
+            true => (a * b_exp.clone() - b),
+            false => (a * b_exp.clone() + b),
+        };
+
         Some(Decimal {
-            numerator: sign * (a * b_exp.clone() + b),
+            numerator: sum,
             denumerator: b_exp,
         })
     }
@@ -37,31 +40,21 @@ impl Add for Decimal {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
-        if &self.denumerator == &other.denumerator {
-            dbg!(&other, &self);
-            return Decimal {
-                numerator: &self.numerator + &other.numerator,
-                denumerator: self.denumerator,
-            };
-        }
-
-        match (&self.denumerator, &other.denumerator) {
+        let (numerator, denumerator) = match (&self.denumerator, &other.denumerator) {
+            (a, b) if a == b => (&self.numerator + &other.numerator, self.denumerator),
             (a, b) if a > b => {
                 let k = &self.denumerator / &other.denumerator;
-
-                Decimal {
-                    numerator: self.numerator + other.numerator * k,
-                    denumerator: self.denumerator,
-                }
+                (self.numerator + other.numerator * k, self.denumerator)
             }
-            (_a, _b) => {
+            (_, _) => {
                 let k = &other.denumerator / &self.denumerator;
-
-                Decimal {
-                    numerator: self.numerator * k + other.numerator,
-                    denumerator: other.denumerator,
-                }
+                (self.numerator * k + other.numerator, other.denumerator)
             }
+        };
+
+        Decimal {
+            numerator,
+            denumerator,
         }
     }
 }
