@@ -21,7 +21,11 @@ impl Decimal {
 
                 (a.parse().ok()?, b.parse().ok()?, exp)
             }
-            None => (input.parse().ok()?, BigInt::default(), BigInt::default()),
+            None => (
+                input.parse().ok()?,
+                BigInt::default(),
+                BigInt::try_from(1u32).unwrap(),
+            ),
         };
 
         let sum = match input.starts_with('-') {
@@ -34,7 +38,10 @@ impl Decimal {
 }
 
 fn reduce(numerator: BigInt, denumerator: BigInt) -> Decimal {
-    if numerator.clone() != BigInt::default() && &numerator % 10 == 0.into() {
+    if numerator.clone() != BigInt::default()
+        && &numerator % 10 == 0.into()
+        && &denumerator % 10 == 0.into()
+    {
         reduce(
             numerator / BigInt::try_from(10u32).unwrap(),
             denumerator / BigInt::try_from(10u32).unwrap(),
@@ -190,5 +197,14 @@ mod tests {
     #[test]
     fn test_sub_borrow() {
         assert_eq!(decimal("0.01") - decimal("0.0001"), decimal("0.0099"))
+    }
+
+    #[test]
+    fn test_add_vary_precision() {
+        assert_eq!(
+            decimal("100000000000000000000000000000000000000000000")
+                + decimal("0.00000000000000000000000000000000000000001"),
+            decimal(BIGS[0])
+        )
     }
 }
