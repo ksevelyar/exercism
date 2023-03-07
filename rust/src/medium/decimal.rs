@@ -29,10 +29,21 @@ impl Decimal {
             false => (a * b_exp.clone() + b),
         };
 
-        Some(Decimal {
-            numerator: sum,
-            denumerator: b_exp,
-        })
+        Some(reduce(sum, b_exp))
+    }
+}
+
+fn reduce(numerator: BigInt, denumerator: BigInt) -> Decimal {
+    if numerator.clone() != BigInt::default() && &numerator % 10 == 0.into() {
+        reduce(
+            numerator / BigInt::try_from(10u32).unwrap(),
+            denumerator / BigInt::try_from(10u32).unwrap(),
+        )
+    } else {
+        Decimal {
+            numerator,
+            denumerator,
+        }
     }
 }
 
@@ -52,10 +63,7 @@ impl Add for Decimal {
             }
         };
 
-        Decimal {
-            numerator,
-            denumerator,
-        }
+        reduce(numerator, denumerator)
     }
 }
 
@@ -63,7 +71,19 @@ impl Mul for Decimal {
     type Output = Self;
 
     fn mul(self, other: Self) -> Self {
-        todo!()
+        let (numerator, denumerator) = match (&self.denumerator, &other.denumerator) {
+            (a, b) if a == b => (&self.numerator + &other.numerator, self.denumerator),
+            (a, b) if a > b => {
+                let k = &self.denumerator / &other.denumerator;
+                (self.numerator + other.numerator * k, self.denumerator)
+            }
+            (_, _) => {
+                let k = &other.denumerator / &self.denumerator;
+                (self.numerator * k + other.numerator, other.denumerator)
+            }
+        };
+
+        reduce(numerator, denumerator)
     }
 }
 
@@ -71,7 +91,19 @@ impl Sub for Decimal {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self {
-        todo!()
+        let (numerator, denumerator) = match (&self.denumerator, &other.denumerator) {
+            (a, b) if a == b => (&self.numerator - &other.numerator, self.denumerator),
+            (a, b) if a > b => {
+                let k = &self.denumerator / &other.denumerator;
+                (self.numerator - other.numerator * k, self.denumerator)
+            }
+            (_, _) => {
+                let k = &other.denumerator / &self.denumerator;
+                (self.numerator * k - other.numerator, other.denumerator)
+            }
+        };
+
+        reduce(numerator, denumerator)
     }
 }
 
@@ -136,11 +168,6 @@ mod tests {
     }
 
     #[test]
-    fn test_sub_borrow() {
-        assert_eq!(decimal("0.01") - decimal("0.0001"), decimal("0.0099"))
-    }
-
-    #[test]
     fn test_add_borrow_integral() {
         assert_eq!(decimal("1.0") + decimal("-0.01"), decimal("0.99"))
     }
@@ -148,5 +175,20 @@ mod tests {
     #[test]
     fn test_add_carry_over_negative() {
         assert_eq!(decimal("-1.99") + decimal("-0.01"), decimal("-2.0"))
+    }
+
+    #[test]
+    fn test_add_into_fewer_digits() {
+        assert_eq!(decimal("0.011") + decimal("-0.001"), decimal("0.01"))
+    }
+
+    #[test]
+    fn test_sub_away_decimal() {
+        assert_eq!(decimal("1.1") - decimal("0.1"), decimal("1.0"))
+    }
+
+    #[test]
+    fn test_sub_borrow() {
+        assert_eq!(decimal("0.01") - decimal("0.0001"), decimal("0.0099"))
     }
 }
