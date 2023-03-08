@@ -1,9 +1,10 @@
+use core::cmp::Ordering;
 use num_bigint::BigInt;
 use std::ops::Add;
 use std::ops::Mul;
 use std::ops::Sub;
 
-#[derive(PartialEq, PartialOrd, Debug)]
+#[derive(Debug)]
 pub struct Decimal {
     numerator: BigInt,
     denumerator: BigInt,
@@ -38,7 +39,7 @@ impl Decimal {
 }
 
 fn reduce(numerator: BigInt, denumerator: BigInt) -> Decimal {
-    if numerator.clone() != BigInt::default()
+    if numerator != BigInt::default()
         && &numerator % 10 == 0.into()
         && &denumerator % 10 == 0.into()
     {
@@ -50,6 +51,33 @@ fn reduce(numerator: BigInt, denumerator: BigInt) -> Decimal {
         Decimal {
             numerator,
             denumerator,
+        }
+    }
+}
+
+impl PartialOrd for Decimal {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        let (a, b) = match (&self.denumerator, &other.denumerator) {
+            (a, b) if a == b => (self.numerator.clone(), other.numerator.clone()),
+            (a, b) if a > b => {
+                let k = &self.denumerator / &other.denumerator;
+                (self.numerator.clone(), (&other.numerator * &k))
+            }
+            (_, _) => {
+                let k = &other.denumerator / &self.denumerator;
+                (&self.numerator * k, other.numerator.clone())
+            }
+        };
+
+        Some(a.cmp(&b))
+    }
+}
+
+impl PartialEq for Decimal {
+    fn eq(&self, other: &Self) -> bool {
+        match (&self.numerator, &other.numerator) {
+            (a, b) if *a == BigInt::default() && *b == BigInt::default() => true,
+            (_, _) => self.numerator == other.numerator && self.denumerator == other.denumerator,
         }
     }
 }
@@ -79,15 +107,15 @@ impl Mul for Decimal {
 
     fn mul(self, other: Self) -> Self {
         let (numerator, denumerator) = match (&self.denumerator, &other.denumerator) {
-            (a, b) if a == b => (&self.numerator + &other.numerator, self.denumerator),
-            (a, b) if a > b => {
-                let k = &self.denumerator / &other.denumerator;
-                (self.numerator + other.numerator * k, self.denumerator)
-            }
-            (_, _) => {
-                let k = &other.denumerator / &self.denumerator;
-                (self.numerator * k + other.numerator, other.denumerator)
-            }
+            (a, b) if a == b => (&self.numerator * &other.numerator, self.denumerator),
+            (a, b) if a > b => (
+                self.numerator * other.numerator,
+                self.denumerator * other.denumerator,
+            ),
+            (_, _) => (
+                self.numerator * other.numerator,
+                other.denumerator * self.denumerator,
+            ),
         };
 
         reduce(numerator, denumerator)
@@ -206,5 +234,37 @@ mod tests {
                 + decimal("0.00000000000000000000000000000000000000001"),
             decimal(BIGS[0])
         )
+    }
+
+    #[test]
+    fn test_mul_id() {
+        assert_eq!(decimal("2.1") * decimal("1.0"), decimal("2.1"));
+
+        assert_eq!(decimal("1.0") * decimal("2.1"), decimal("2.1"));
+    }
+
+    #[test]
+    fn test_eq_vary_sig_digits() {
+        assert!(decimal("0") == decimal("0000000000000.0000000000000000000000"));
+
+        assert!(decimal("1") == decimal("00000000000000001.000000000000000000"));
+    }
+
+    #[test]
+    fn test_gt_varying_positive_precisions() {
+        assert!(decimal("1.1") > decimal("1.01"));
+
+        assert!(decimal("1.01") > decimal("1.0"));
+
+        assert!(decimal("1.0") > decimal("0.1"));
+
+        assert!(decimal("0.1") > decimal("0.01"));
+    }
+
+    #[test]
+    fn test_gt_negative_and_zero() {
+        assert!(decimal("0.0") > decimal("-0.1"));
+
+        assert!(decimal("0.0") > decimal("-1.0"));
     }
 }
