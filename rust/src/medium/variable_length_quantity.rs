@@ -4,12 +4,26 @@ pub enum Error {
     Overflow,
 }
 
-/// Convert a list of numbers to a stream of bytes encoded with variable length encoding.
 pub fn to_bytes(values: &[u32]) -> Vec<u8> {
+    println!("{}", values[0]);
+    println!("{:b}", values[0]);
     unimplemented!("Convert the values {values:?} to a list of bytes")
 }
 
-/// Given a stream of bytes, extract all numbers which are encoded in there.
 pub fn from_bytes(bytes: &[u8]) -> Result<Vec<u32>, Error> {
     unimplemented!("Convert the list of bytes {bytes:?} to a list of numbers")
+}
+
+#[test]
+fn to_single_byte() {
+    assert_eq!(&[0x7f], to_bytes(&[0x7f]).as_slice());
+}
+
+#[test]
+fn to_double_byte() {
+    assert_eq!(&[0x81, 0x00], to_bytes(&[0x80]).as_slice());
+
+    assert_eq!(&[0xc0, 0x00], to_bytes(&[0x2000]).as_slice());
+
+    assert_eq!(&[0xff, 0x7f], to_bytes(&[0x3fff]).as_slice());
 }
