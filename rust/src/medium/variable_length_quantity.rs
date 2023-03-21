@@ -7,6 +7,10 @@ pub enum Error {
 pub fn to_bytes(values: &[u32]) -> Vec<u8> {
     println!("{}", values[0]);
     println!("{:b}", values[0]);
+
+    let bytes: [u8; 4] = unsafe { std::mem::transmute(values[0]) };
+    dbg!(bytes);
+
     unimplemented!("Convert the values {values:?} to a list of bytes")
 }
 
