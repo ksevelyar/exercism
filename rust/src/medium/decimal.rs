@@ -30,8 +30,8 @@ impl Decimal {
         };
 
         let sum = match input.starts_with('-') {
-            true => (a * b_exp.clone() - b),
-            false => (a * b_exp.clone() + b),
+            true => a * b_exp.clone() - b,
+            false => a * b_exp.clone() + b,
         };
 
         Some(reduce(sum, b_exp))
