@@ -49,6 +49,7 @@ pub mod saddle_points;
 pub mod say;
 pub mod scale_generator;
 pub mod scrabble_score;
+pub mod secret_handshake;
 pub mod sieve;
 pub mod simple_cipher;
 pub mod simple_linked_list;
