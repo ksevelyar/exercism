@@ -35,6 +35,22 @@ pub fn from_bytes(bytes: &[u8]) -> Result<Vec<u32>, Error> {
 }
 
 fn vlq_to_u32(bytes: &[u8]) -> Result<u32, Error> {
+    if let Some(byte) = bytes.last() {
+        if byte & 0b1_0000000 == 0b1_0000000 {
+            return Err(Error::IncompleteNumber);
+        }
+    };
+
+    let max_vlq_bytes_for_u32 = 5;
+    if bytes.len() > max_vlq_bytes_for_u32 {
+        return Err(Error::Overflow);
+    };
+    if bytes.len() == max_vlq_bytes_for_u32 {
+        if (bytes[0] & 0b01110000) != 0 {
+            return Err(Error::Overflow);
+        }
+    };
+
     let sum: u32 = bytes
         .iter()
         .rev()
@@ -117,5 +133,23 @@ fn from_bytes_multiple_values() {
             0xc0, 0x00, 0xc8, 0xe8, 0x56, 0xff, 0xff, 0xff, 0x7f, 0x00, 0xff, 0x7f, 0x81, 0x80,
             0x00,
         ])
+    );
+}
+
+#[test]
+fn incomplete_byte_sequence() {
+    assert_eq!(Err(Error::IncompleteNumber), from_bytes(&[0xff]));
+}
+
+#[test]
+fn zero_incomplete_byte_sequence() {
+    assert_eq!(Err(Error::IncompleteNumber), from_bytes(&[0x80]));
+}
+
+#[test]
+fn overflow_u32() {
+    assert_eq!(
+        Err(Error::Overflow),
+        from_bytes(&[0xff, 0xff, 0xff, 0xff, 0x7f])
     );
 }
