@@ -8,28 +8,6 @@ pub fn to_bytes(values: &[u32]) -> Vec<u8> {
     values.iter().flat_map(|num| u32_to_vlq(*num)).collect()
 }
 
-pub fn from_bytes(bytes: &[u8]) -> Result<Vec<u32>, Error> {
-    println!("goal: {:b}", 106903);
-    dbg!(bytes);
-
-    let sum: u32 = bytes
-        .iter()
-        .rev()
-        .enumerate()
-        .fold(0u32, |acc, (ind, byte)| {
-            dbg!(byte, ind);
-            println!("byte {:07b}\n", (byte & 0b1111111));
-
-            let shift = ((byte & 0b1111111) as u32) << (7 * ind);
-            println!("shift {:07b}\n", shift);
-
-            acc | shift
-        });
-    println!("result: {:b}", sum);
-
-    Ok(vec![sum])
-}
-
 fn u32_to_vlq(num: u32) -> Vec<u8> {
     if num == 0 {
         return vec![0];
@@ -39,7 +17,6 @@ fn u32_to_vlq(num: u32) -> Vec<u8> {
         .map(|ind| ((num >> 7 * ind) & 0b1111111) as u8)
         .rev()
         .skip_while(|n| *n == 0);
-
     let max_ind = values.clone().count() - 1;
 
     values
@@ -49,6 +26,25 @@ fn u32_to_vlq(num: u32) -> Vec<u8> {
             true => byte,
         })
         .collect()
+}
+
+pub fn from_bytes(bytes: &[u8]) -> Result<Vec<u32>, Error> {
+    let nums = bytes.split_inclusive(|byte| byte & 0b1_0000000 == 0b0_0000000);
+
+    nums.map(|bytes| vlq_to_u32(bytes)).collect()
+}
+
+fn vlq_to_u32(bytes: &[u8]) -> Result<u32, Error> {
+    let sum: u32 = bytes
+        .iter()
+        .rev()
+        .enumerate()
+        .fold(0u32, |acc, (ind, byte)| {
+            let shift = ((byte & 0b1111111) as u32) << (7 * ind);
+            acc | shift
+        });
+
+    Ok(sum)
 }
 
 #[test]
@@ -110,5 +106,16 @@ fn from_various_bytes() {
     assert_eq!(
         Ok(vec![0xffff_ffff]),
         from_bytes(&[0x8f, 0xff, 0xff, 0xff, 0x7f])
+    );
+}
+
+#[test]
+fn from_bytes_multiple_values() {
+    assert_eq!(
+        Ok(vec![0x2000, 0x12_3456, 0x0fff_ffff, 0x00, 0x3fff, 0x4000]),
+        from_bytes(&[
+            0xc0, 0x00, 0xc8, 0xe8, 0x56, 0xff, 0xff, 0xff, 0x7f, 0x00, 0xff, 0x7f, 0x81, 0x80,
+            0x00,
+        ])
     );
 }
