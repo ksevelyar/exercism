@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet};
+use std::iter::successors;
 
 #[derive(Debug)]
 struct Puzzle<'a> {
@@ -22,41 +23,20 @@ impl<'a> Puzzle<'a> {
     }
 }
 
-fn combinations(items: &[u8], n: usize, acc: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
-    let acc = match acc.is_empty() {
-        false => acc,
-        true => items.iter().cloned().map(|item| vec![item]).collect(),
-    };
+fn combinations(n: usize) -> impl Iterator<Item = Vec<usize>> {
+    // n possibilities
+    let range = 0..=9;
 
-    if n <= 1 {
-        return acc;
-    };
+    let init: Vec<_> = (0..=9).take(n).collect();
+    dbg!(&init);
 
-    let new_acc: Vec<Vec<u8>> = items
-        .iter()
-        .flat_map(|x| {
-            acc.iter().filter(|set| !set.contains(x)).map(|set| {
-                let mut new_set = set.clone();
-                new_set.push(*x);
+    successors(Some(init), move |v| {
+        let mut v = v.to_vec();
 
-                new_set
-            })
-        })
-        .collect();
+        v[n - 1] += 1;
 
-    combinations(items, n - 1, new_acc)
-}
-
-fn known_chars(puzzle: &Puzzle, num: usize) -> HashMap<char, u8> {
-    puzzle
-        .result
-        .chars()
-        .zip(
-            num.to_string()
-                .chars()
-                .map(|char| char.to_digit(10).unwrap() as u8),
-        )
-        .collect()
+        Some(v)
+    })
 }
 
 pub fn solve(input: &str) -> Option<HashMap<char, u8>> {
@@ -69,40 +49,12 @@ pub fn solve(input: &str) -> Option<HashMap<char, u8>> {
 
     dbg!(&chars);
 
-    let combinations = combinations(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], chars.len(), Vec::new());
-    let combinations_f = combinations.iter().find(|set| {
-        let map: HashMap<char, u8> = chars.iter().cloned().zip(set.iter().cloned()).collect();
+    let combinations: Vec<_> = combinations(chars.len()).take(10).collect();
+    dbg!(combinations);
 
-        let sum: usize = puzzle
-            .sum
-            .iter()
-            .map(|term| {
-                term.iter().enumerate().fold(0, |acc, (ind, x)| {
-                    acc + (map[x] as usize) * (10usize.pow(ind as u32))
-                })
-            })
-            .sum();
-
-        let result = puzzle
-            .result
-            .chars()
-            .rev()
-            .enumerate()
-            .fold(0, |acc, (ind, x)| {
-                acc + (map[&x] as usize) * (10usize.pow(ind as u32))
-            });
-
-        sum == result
-    })?;
-
-    Some(
-        chars
-            .iter()
-            .cloned()
-            .zip(combinations_f.iter().cloned())
-            .collect(),
-    )
+    todo!()
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -116,7 +68,15 @@ mod tests {
     }
 
     #[test]
-    fn test_with_three_letters() {
+    fn test_three_letters() {
         assert_alphametic_solution_eq("I + BB == ILL", &[('I', 1), ('B', 9), ('L', 0)]);
+    }
+
+    #[test]
+    fn test_six_letters() {
+        assert_alphametic_solution_eq(
+            "NO + NO + TOO == LATE",
+            &[('N', 7), ('O', 4), ('T', 9), ('L', 1), ('A', 0), ('E', 2)],
+        );
     }
 }
