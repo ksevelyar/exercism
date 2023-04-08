@@ -1,7 +1,6 @@
 use rand::Rng;
 use std::cell::RefCell;
 use std::collections::HashSet;
-use std::thread;
 
 thread_local!(static ID: RefCell<HashSet<String>> = RefCell::new(HashSet::new()));
 

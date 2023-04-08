@@ -46,6 +46,7 @@ fn combinations(n: usize) -> impl Iterator<Item = Vec<u8>> {
 
 pub fn solve(input: &str) -> Option<HashMap<char, u8>> {
     let puzzle = Puzzle::build(input)?;
+    dbg!(&puzzle);
 
     let chars: HashSet<char> = input
         .chars()
@@ -112,6 +113,39 @@ mod tests {
         assert_alphametic_solution_eq(
             "NO + NO + TOO == LATE",
             &[('N', 7), ('O', 4), ('T', 9), ('L', 1), ('A', 0), ('E', 2)],
+        );
+    }
+
+    #[test]
+    fn test_puzzle_with_seven_letters() {
+        assert_alphametic_solution_eq(
+            "HE + SEES + THE == LIGHT",
+            &[
+                ('E', 4),
+                ('G', 2),
+                ('H', 5),
+                ('I', 0),
+                ('L', 1),
+                ('S', 9),
+                ('T', 7),
+            ],
+        );
+    }
+
+    #[test]
+    fn test_puzzle_with_eight_letters() {
+        assert_alphametic_solution_eq(
+            "SEND + MORE == MONEY",
+            &[
+                ('S', 9),
+                ('E', 5),
+                ('N', 6),
+                ('D', 7),
+                ('M', 1),
+                ('O', 0),
+                ('R', 8),
+                ('Y', 2),
+            ],
         );
     }
 

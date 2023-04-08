@@ -66,13 +66,6 @@ impl BowlingGame {
         Ok(())
     }
 
-    fn score_frame(frame: Option<&[Option<u16>; 3]>) -> u16 {
-        match frame {
-            Some(frame) => frame[0].unwrap_or(0) + frame[1].unwrap_or(0) + frame[2].unwrap_or(0),
-            None => 0,
-        }
-    }
-
     pub fn score(&self) -> Option<u16> {
         if !self.is_complete() {
             return None;

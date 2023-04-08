@@ -29,6 +29,7 @@ pub fn parse<'a>(pairs: Vec<(&'a str, &'a str)>) -> CodonsInfo<'a> {
     CodonsInfo { pairs }
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
 
