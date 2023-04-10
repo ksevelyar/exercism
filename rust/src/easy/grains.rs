@@ -6,5 +6,7 @@ pub fn square(s: u32) -> u64 {
 }
 
 pub fn total() -> u64 {
-    (1..=64).fold(0, |total_grains, current_square| total_grains + square(current_square))
+    (1..=64).fold(0, |total_grains, current_square| {
+        total_grains + square(current_square)
+    })
 }

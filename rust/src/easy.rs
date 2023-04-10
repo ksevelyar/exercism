@@ -8,6 +8,7 @@ pub mod gigasecond;
 pub mod grains;
 pub mod health_statistics;
 pub mod high_scores;
+pub mod kindergarten_garden;
 pub mod leap_year;
 pub mod magazine_cutout;
 pub mod matching_brackets;

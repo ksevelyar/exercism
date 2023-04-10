@@ -1,5 +1,5 @@
-pub struct HighScores<'a>{
-    scores: &'a [u32]
+pub struct HighScores<'a> {
+    scores: &'a [u32],
 }
 
 impl<'a> HighScores<'a> {
