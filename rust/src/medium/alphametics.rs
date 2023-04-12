@@ -26,18 +26,16 @@ impl<'a> Puzzle<'a> {
 fn combinations(n: usize) -> impl Iterator<Item = Vec<u8>> {
     let init: Vec<_> = (0..=9).take(n).collect();
 
-    successors(Some(init), move |v| {
-        let mut v = v.to_vec();
-
-        let index = v.iter().rposition(|&num| num < 9)?;
-        v[index] += 1;
+    successors(Some(init), |v| {
+        let next_change_index = v.iter().rposition(|&num| num < 9)?;
 
         Some(
             v.into_iter()
                 .enumerate()
-                .map(|(ind, num)| match ind > index {
-                    true => 0,
-                    false => num,
+                .map(|(ind, num)| match ind {
+                    ind if ind > next_change_index => 0,
+                    ind if ind == next_change_index => num + 1,
+                    _ => *num,
                 })
                 .collect(),
         )
@@ -46,7 +44,6 @@ fn combinations(n: usize) -> impl Iterator<Item = Vec<u8>> {
 
 pub fn solve(input: &str) -> Option<HashMap<char, u8>> {
     let puzzle = Puzzle::build(input)?;
-    dbg!(&puzzle);
 
     let chars: HashSet<char> = input
         .chars()
