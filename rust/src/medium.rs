@@ -63,3 +63,4 @@ pub mod two_buckets;
 pub mod variable_length_quantity;
 pub mod word_count;
 pub mod wordy;
+pub mod yacht;
