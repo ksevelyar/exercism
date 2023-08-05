@@ -3,11 +3,13 @@ defmodule Prime do
   Generates the nth prime.
   """
   def nth(0), do: raise("There is no zeroth prime")
+
   def nth(count) do
     iter_primes(0, count)
   end
 
   defp iter_primes(prime, 0), do: prime
+
   defp iter_primes(maybe_prime, count) do
     if prime?(maybe_prime + 1) do
       iter_primes(maybe_prime + 1, count - 1)
@@ -17,6 +19,7 @@ defmodule Prime do
   end
 
   defp prime?(2), do: true
+
   defp prime?(num) do
     Enum.all?(2..(num - 1), &(rem(num, &1) != 0))
   end

@@ -23,6 +23,7 @@ defmodule PaintByNumber do
   end
 
   def get_first_pixel("", _color_count), do: nil
+
   def get_first_pixel(picture, color_count) do
     palette_size = palette_bit_size(color_count)
     <<pixel::size(palette_size), _rest::bitstring>> = picture
@@ -31,6 +32,7 @@ defmodule PaintByNumber do
   end
 
   def drop_first_pixel("", _color_count), do: ""
+
   def drop_first_pixel(picture, color_count) do
     palette_size = palette_bit_size(color_count)
     <<_pixel::size(palette_size), rest::bitstring>> = picture

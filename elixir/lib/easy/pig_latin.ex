@@ -3,14 +3,19 @@ defmodule PigLatin do
   Given a `phrase`, translate it a word at a time to Pig Latin.
   """
   @vowels ~w(a e i o u)
-  @vowels_at_start ~w(xr yt)
 
   @spec translate(phrase :: String.t()) :: String.t()
   def translate(phrase) do
-    if String.starts_with?(phrase, @vowels ++ @vowels_at_start) do
-      "#{phrase}ay"
+    String.split(phrase, " ", trim: true)
+    |> Enum.map(&translate_word/1)
+    |> Enum.join(" ")
+  end
+
+  defp translate_word(<<ch1::bitstring-size(8), ch2::bitstring-size(8), _rest::binary>> = word) do
+    if (ch1 in ~w(x y) and ch2 not in @vowels) or ch1 in @vowels do
+      "#{word}ay"
     else
-      "#{maybe_move_consonant_cluster(phrase)}ay"
+      "#{maybe_move_consonant_cluster(word)}ay"
     end
   end
 
@@ -27,7 +32,7 @@ defmodule PigLatin do
   end
 
   defp move_consonant_cluster(<<head::bitstring-size(8), rest::binary>>, acc) do
-    if head in @vowels do
+    if head in @vowels or (acc != "" and head == "y") do
       move_consonant_cluster(<<>>, head <> rest <> acc)
     else
       move_consonant_cluster(rest, acc <> head)

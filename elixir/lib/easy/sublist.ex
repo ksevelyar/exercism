@@ -20,6 +20,7 @@ defmodule Sublist do
   end
 
   defp sublist(_a, []), do: true
+
   defp sublist(a, b) do
     possible_matches =
       Enum.with_index(a) |> Enum.filter(&(elem(&1, 0) == hd(b))) |> Enum.map(&elem(&1, 1))
