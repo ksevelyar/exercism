@@ -19,7 +19,7 @@ defmodule PigLatin do
     end
   end
 
-  def maybe_move_consonant_cluster(word) do
+  defp maybe_move_consonant_cluster(word) do
     move_consonant_cluster(word, "")
   end
 
