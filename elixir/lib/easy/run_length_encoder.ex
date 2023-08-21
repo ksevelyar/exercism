@@ -34,5 +34,17 @@ defmodule RunLengthEncoder do
 
   @spec decode(String.t()) :: String.t()
   def decode(string) do
+    do_decode(string, 0, "")
+  end
+
+  defp do_decode(<<>>, _count, acc) do
+    acc
+  end
+
+  defp do_decode(<<current_letter::bitstring-size(8), rest::binary>>, count, acc) do
+    case Integer.parse(current_letter) do
+      :error -> do_decode(rest, 0, "#{acc}#{String.duplicate(current_letter, count)}")
+      {number, _} -> do_decode(rest, number, acc)
+    end
   end
 end
