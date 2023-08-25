@@ -33,8 +33,31 @@ defmodule BinarySearchTree do
   Traverses the Binary Search Tree in order and returns a list of each node's data.
   """
   @spec in_order(bst_node) :: [any]
-  # TODO: push nodes to a queue
   def in_order(tree) do
-    # Your implementation here
+    collect_data(tree, [], [])
+  end
+
+  defp collect_data(%{left: nil} = tree, values, nodes) do
+    if tree.right do
+      collect_data(tree.right, [tree.data | values], nodes)
+    else
+      collect_data(nil, [tree.data | values], nodes)
+    end
+  end
+
+  defp collect_data(nil, values, []) do
+    Enum.reverse(values)
+  end
+
+  defp collect_data(nil, values, [head | rest]) do
+    if head.right do
+      collect_data(head.right, [head.data | values], rest)
+    else
+      collect_data(nil, [head.data | values], rest)
+    end
+  end
+
+  defp collect_data(tree, values, nodes) do
+    collect_data(tree.left, values, [tree | nodes])
   end
 end
