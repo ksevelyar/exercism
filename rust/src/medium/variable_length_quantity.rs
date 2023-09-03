@@ -31,7 +31,7 @@ fn u32_to_vlq(num: u32) -> Vec<u8> {
 pub fn from_bytes(bytes: &[u8]) -> Result<Vec<u32>, Error> {
     let nums = bytes.split_inclusive(|byte| byte & 0b1_0000000 == 0b0_0000000);
 
-    nums.map(|bytes| vlq_to_u32(bytes)).collect()
+    nums.map(vlq_to_u32).collect()
 }
 
 fn vlq_to_u32(bytes: &[u8]) -> Result<u32, Error> {

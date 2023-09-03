@@ -9,7 +9,7 @@ pub fn answer(command: &str) -> Option<i32> {
     let operations: Option<Vec<(_, _)>> = words
         .chunks(2)
         .map(|chunk| {
-            let command = chunk.get(0)?;
+            let command = chunk.first()?;
             let number: i32 = chunk.get(1)?.parse().ok()?;
 
             Some((command, number))
