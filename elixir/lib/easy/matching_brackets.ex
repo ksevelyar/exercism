@@ -4,22 +4,29 @@ defmodule MatchingBrackets do
   """
   @spec check_brackets(String.t()) :: boolean
   def check_brackets(str) do
-    brackets =
-      str
-      |> String.graphemes()
-      |> Enum.filter(&(&1 in ["{", "}", "[", "]", "(", ")"]))
-
-    midPos = div(length(brackets), 2)
-
-    {open_brackets, closed_brackets} = Enum.split(brackets, midPos)
-
-    [open_brackets, Enum.reverse(closed_brackets)]
-    |> Enum.zip_with(fn [o, c] -> pair?(o, c) end)
-    |> Enum.all?(&(&1 == true))
+    str
+    |> String.graphemes()
+    |> Enum.filter(&(&1 in ["{", "}", "[", "]", "(", ")"]))
+    |> remove_balanced_brackets()
+    |> Enum.empty?()
   end
 
-  defp pair?("{", "}"), do: true
-  defp pair?("[", "]"), do: true
-  defp pair?("(", ")"), do: true
-  defp pair?(_, _), do: false
+  defp remove_balanced_brackets(brackets) do
+    Enum.reduce_while(brackets, [], fn
+      bracket, acc when bracket in ["{", "[", "("] ->
+        {:cont, [bracket | acc]}
+
+      "}", ["{" | rest] ->
+        {:cont, rest}
+
+      ")", ["(" | rest] ->
+        {:cont, rest}
+
+      "]", ["[" | rest] ->
+        {:cont, rest}
+
+      bracket, _acc ->
+        {:halt, [bracket]}
+    end)
+  end
 end
