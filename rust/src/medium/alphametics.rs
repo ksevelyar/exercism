@@ -28,6 +28,7 @@ fn combinations(n: usize) {
 
 pub fn solve(input: &str) -> Option<HashMap<char, u8>> {
     let puzzle = Puzzle::build(input)?;
+    dbg!(&puzzle);
 
     let chars: HashSet<char> = input
         .chars()

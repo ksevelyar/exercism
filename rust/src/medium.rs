@@ -17,6 +17,7 @@ pub mod diamond;
 pub mod dot_dsl;
 pub mod etl;
 pub mod fizzy;
+pub mod frequency;
 pub mod grade_school;
 pub mod grep;
 pub mod hamming;
