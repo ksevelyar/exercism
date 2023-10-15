@@ -8,7 +8,9 @@ defmodule PhoneNumber do
 
     with :ok <- validate_non_digits(digits),
          {:ok, digits} <- validate_country_code(digits),
-         :ok <- validate_length(digits) do
+         :ok <- validate_length(digits),
+         :ok <- validate_area(digits),
+         :ok <- validate_exchange(digits) do
       {:ok, digits}
     end
   end
@@ -34,20 +36,18 @@ defmodule PhoneNumber do
   end
 
   defp validate_non_digits(input) do
-    if !String.match?(input, ~r/^\d+$/) do
-      {:error, "must contain digits only"}
-    else
+    if String.match?(input, ~r/^\d+$/) do
       :ok
+    else
+      {:error, "must contain digits only"}
     end
   end
 
-  defp validate_area(input) do
-    {:error, "area code cannot start with zero"}
-    {:error, "area code cannot start with one"}
-  end
+  defp validate_area("0" <> _), do: {:error, "area code cannot start with zero"}
+  defp validate_area("1" <> _), do: {:error, "area code cannot start with one"}
+  defp validate_area(_), do: :ok
 
-  defp validate_exchange_code(input) do
-    {:error, "exchange code cannot start with zero"}
-    {:error, "exchange code cannot start with one"}
-  end
+  defp validate_exchange(<<_area::binary-size(3)>> <> "0" <> _), do: {:error, "exchange code cannot start with zero"}
+  defp validate_exchange(<<_area::binary-size(3)>> <> "1" <> _), do: {:error, "exchange code cannot start with one"}
+  defp validate_exchange(_), do: :ok
 end
