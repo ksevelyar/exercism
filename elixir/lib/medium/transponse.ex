@@ -23,11 +23,13 @@ defmodule Transpose do
 
     longest_line_length = Enum.max_by(lines, &length(&1)) |> length()
 
-    lines = Enum.map(lines, fn line -> pad_line(line, longest_line_length) end)
+    # lines = Enum.map(lines, fn line -> pad_line(line, longest_line_length) end)
 
     0..(longest_line_length - 1)
     |> Enum.map(fn row ->
-      lines |> Enum.map(fn line -> Enum.at(line, row) end) |> Enum.join() |> String.trim_trailing(" ")
+      lines
+      |> Enum.map(fn line -> Enum.at(line, row) end)
+      |> Enum.join()
     end)
     |> Enum.join("\n")
   end
