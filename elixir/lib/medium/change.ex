@@ -19,18 +19,29 @@ defmodule Change do
   def generate(_coins, target) when target < 0, do: {:error, "cannot change"}
 
   def generate(coins, target) do
-    coins
-    |> Enum.reverse()
-    |> find_change(target, [])
+    case find_change(coins, target, []) do
+      nil -> {:error, "cannot change"}
+      change -> {:ok, change}
+    end
   end
 
-  defp find_change([], target, _change) when target > 0, do: {:error, "cannot change"}
-  defp find_change(_coins, 0, change), do: {:ok, Enum.reverse(change)}
+  defp find_change(_coins, target, change) when target == 0, do: Enum.sort(change)
 
-  defp find_change([coin | rest], target, change) do
-    case div(target, coin) do
-      0 -> find_change(rest, target, change)
-      n -> find_change(rest, target - n * coin, change ++ List.duplicate(coin, n))
-    end
+  defp find_change(coins, target, change) do
+    Enum.reduce(coins, nil, fn coin, best_change ->
+      case coin <= target do
+        true ->
+          change = find_change(coins, target - coin, [coin | change])
+
+          if is_nil(best_change) || (!is_nil(change) && length(change) < length(best_change)) do
+            change
+          else
+            best_change
+          end
+
+        false ->
+          best_change
+      end
+    end)
   end
 end
