@@ -6,6 +6,15 @@ defmodule TripletTest do
       assert Triplet.generate(12) == [[3, 4, 5]]
     end
 
+    test "108" do
+      assert Triplet.generate(108) == [[27, 36, 45]]
+    end
+
+    @tag :skip
+    test "90" do
+      assert Triplet.generate(90) == [[9, 40, 41], [15, 36, 39]]
+    end
+
     @tag :skip
     test "840" do
       assert Triplet.generate(840) == [

@@ -32,25 +32,24 @@ defmodule Triplet do
     |> Enum.flat_map(fn m ->
       find_triplets(m, 1, sum, [])
     end)
-    |> dbg
   end
 
-  def find_triplets(m, n, limit, result) do
+  def find_triplets(m, n, sum, result) do
     a = m * m - n * n
     b = 2 * m * n
     c = m * m + n * n
 
-    if n > m do
+    if c >= sum do
       result
     else
       result =
-        if a + b + c == limit do
+        if a + b + c == sum do
           [[a, b, c] | result]
         else
           result
         end
 
-      find_triplets(m, n + 1, limit, result)
+      find_triplets(m, n + 1, sum, result)
     end
   end
 end
