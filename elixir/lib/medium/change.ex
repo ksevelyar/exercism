@@ -16,38 +16,28 @@ defmodule Change do
   """
 
   @spec generate(list, integer) :: {:ok, list} | {:error, String.t()}
-  def generate(_coins, 0), do: {:ok, []}
-  def generate(_coins, target) when target < 0, do: {:error, "cannot change"}
-
   def generate(coins, target) do
-    acc =
-      Enum.reduce(1..target, %{}, fn current_target, acc ->
-        iterate_coins(coins, current_target, acc)
-      end)
+    acc = Enum.reduce(coins, %{0 => []}, fn coin, acc ->
+      iterate_coins(target - coin + 1, coin, acc)
+    end)
 
     case acc[target] do
       nil -> {:error, "cannot change"}
-      list -> {:ok, Enum.reverse(list)}
+      list -> {:ok, Enum.sort(list)}
     end
   end
 
-  defp iterate_coins([], _current_target, acc), do: acc
-  defp iterate_coins([coin | coins], target, acc) do
-    case target - coin do
-      0 ->
-        iterate_coins(coins, target, Map.put(acc, target, [coin]))
+  defp iterate_coins(max_target, coin, acc) do
+    Enum.reduce(0..max_target, acc, fn target, acc ->
+      if best_variant?(acc[target], acc[target + coin]) do
+        Map.put(acc, target + coin, [coin | acc[target]])
+      else
+        acc
+      end
+    end)
+  end
 
-      rem when rem > 0 ->
-        case acc[rem] do
-          nil ->
-            iterate_coins(coins, target, acc)
-
-          calculated_coins ->
-            iterate_coins(coins, target, Map.put(acc, target, [coin | calculated_coins]))
-        end
-
-      _ ->
-        iterate_coins(coins, target, acc)
-    end
+  defp best_variant?(cache, target) do
+    cache != nil && (target == nil || length(target) > length(cache))
   end
 end

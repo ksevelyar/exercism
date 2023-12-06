@@ -6,7 +6,6 @@ defmodule ChangeTest do
       assert Change.generate([5, 10, 25], 30) == {:ok, [5, 25]}
     end
 
-    @tag :skip
     test "[1, 4, 15, 20, 50], 30" do
       assert Change.generate([1, 4, 15, 20, 50], 23) == {:ok, [4, 4, 15]}
     end
