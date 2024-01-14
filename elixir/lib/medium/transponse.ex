@@ -1,40 +1,30 @@
 defmodule Transpose do
-  @doc """
-  Given an input text, output it transposed.
+  def transpose(""), do: ""
 
-  Rows become columns and columns become rows. See https://en.wikipedia.org/wiki/Transpose.
-
-  If the input has rows of different lengths, this is to be solved as follows:
-    * Pad to the left with spaces.
-    * Don't pad to the right.
-
-  ## Examples
-
-    iex> Transpose.transpose("ABC\\nDE")
-    "AD\\nBE\\nC"
-
-    iex> Transpose.transpose("AB\\nDEF")
-    "AD\\nBE\\n F"
-  """
-
-  @spec transpose(String.t()) :: String.t()
   def transpose(input) do
-    lines = input |> String.split("\n") |> Enum.map(&String.graphemes/1)
+    rows = input |> String.split("\n") |> Enum.map(&String.graphemes/1)
+    padded_rows = rows |> Enum.zip(column_lengths(rows)) |> Enum.map(&pad_row/1)
+    longest_row_length = rows |> Enum.map(&length/1) |> Enum.max()
 
-    longest_line_length = Enum.max_by(lines, &length(&1)) |> length()
-
-    # lines = Enum.map(lines, fn line -> pad_line(line, longest_line_length) end)
-
-    0..(longest_line_length - 1)
-    |> Enum.map(fn row ->
-      lines
-      |> Enum.map(fn line -> Enum.at(line, row) end)
-      |> Enum.join()
+    0..(longest_row_length - 1)
+    |> Stream.map(fn row ->
+      padded_rows |> Enum.map(fn padded_row -> Enum.at(padded_row, row) end) |> Enum.join()
     end)
     |> Enum.join("\n")
   end
 
-  defp pad_line(line, longest_line_length) do
-    line ++ List.duplicate(" ", longest_line_length - length(line))
+  defp column_lengths(rows) do
+    rows
+    |> Enum.reverse()
+    |> Stream.map(&length/1)
+    |> Enum.reduce([], fn column, columns ->
+      prev_column = Enum.at(columns, 0) || 0
+
+      [max(column, prev_column) | columns]
+    end)
+  end
+
+  defp pad_row({row, column_length}) do
+    row ++ List.duplicate(" ", column_length - length(row))
   end
 end
