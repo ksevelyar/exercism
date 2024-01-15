@@ -30,12 +30,15 @@ defmodule IsbnVerifier do
 
     sum != :error && rem(sum, 11) == 0
   end
+
   defp validate_symbols(_symbols), do: false
 
-
   defp symbol_value({"X", 9}), do: 10
-  defp symbol_value({symbol, index}) when symbol in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"] do
+
+  defp symbol_value({symbol, index})
+       when symbol in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"] do
     String.to_integer(symbol) * (10 - index)
   end
+
   defp symbol_value({_symbol, _index}), do: :error
 end

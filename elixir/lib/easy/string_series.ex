@@ -8,6 +8,7 @@ defmodule StringSeries do
   def slices(str, size), do: do_slices(String.length(str), str, size)
 
   defp do_slices(length, _str, size) when size <= 0 or size > length, do: []
+
   defp do_slices(_length, str, size) do
     str
     |> String.graphemes()

@@ -20,7 +20,7 @@ defmodule Triplet do
   """
   @spec pythagorean?([non_neg_integer]) :: boolean
   def pythagorean?([a, b, c]) do
-    a < b && b < c && a * a + b * b == c * c
+    a ** 2 + b ** 2 == c ** 2
   end
 
   @doc """
@@ -28,28 +28,12 @@ defmodule Triplet do
   """
   @spec generate(non_neg_integer) :: [list(non_neg_integer)]
   def generate(sum) do
-    2..sum
-    |> Enum.flat_map(fn m ->
-      find_triplets(m, 1, sum, [])
+    1..div(sum, 3)
+    |> Stream.flat_map(fn a ->
+      (a + 1)..div(sum, 2)
+      |> Stream.map(fn b -> [a, b, sum - a - b] end)
+      |> Stream.filter(&pythagorean?/1)
     end)
-  end
-
-  def find_triplets(m, n, sum, result) do
-    a = m * m - n * n
-    b = 2 * m * n
-    c = m * m + n * n
-
-    if c >= sum do
-      result
-    else
-      result =
-        if a + b + c == sum do
-          [[a, b, c] | result]
-        else
-          result
-        end
-
-      find_triplets(m, n + 1, sum, result)
-    end
+    |> Enum.to_list()
   end
 end

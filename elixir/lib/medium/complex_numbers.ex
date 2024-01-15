@@ -47,7 +47,9 @@ defmodule ComplexNumbers do
   Divide two complex numbers, or a real and a complex number
   """
   @spec div(a :: complex | float, b :: complex | float) :: complex
-  def div({a, b}, {c, d}), do: {(a * c + b * d) / (c ** 2 + d ** 2), (b * c - a * d) / (c ** 2 + d ** 2)}
+  def div({a, b}, {c, d}),
+    do: {(a * c + b * d) / (c ** 2 + d ** 2), (b * c - a * d) / (c ** 2 + d ** 2)}
+
   def div(r, {c, d}), do: {r * c / (c ** 2 + d ** 2), -r * c / (c ** 2 + d ** 2)}
   def div({c, d}, r), do: {c / r, d / r}
 

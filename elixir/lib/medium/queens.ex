@@ -27,16 +27,19 @@ defmodule Queens do
   defp validate_bounds({x, y}) when x > 7 or y > 7 do
     raise ArgumentError
   end
+
   defp validate_bounds(_), do: :ok
 
   defp validate_negative({x, y}) when x < 0 or y < 0 do
     raise ArgumentError
   end
+
   defp validate_negative(_), do: :ok
 
   defp validate_same_place(x, y) when x == y do
     raise ArgumentError
   end
+
   defp validate_same_place(_, _), do: :ok
 
   @doc """
@@ -75,6 +78,7 @@ defmodule Queens do
   def can_attack?(%{white: {wc, wr}, black: {bc, br}}) do
     wc == bc || wr == br || same_diagonal?({wc, wr}, {bc, br})
   end
+
   def can_attack?(_), do: false
 
   defp diagonal1(x, y) when x < y, do: {0, y - x}

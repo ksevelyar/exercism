@@ -35,7 +35,7 @@ defmodule Atbash do
     insert_space? = index > 0 and rem(index, @encode_word_length) == 0
 
     case insert_space? do
-      true -> [' ', maybe_encoded_char]
+      true -> [~c" ", maybe_encoded_char]
       false -> maybe_encoded_char
     end
   end

@@ -13,6 +13,7 @@ defmodule Gigasecond do
       minute: minutes,
       second: seconds
     }
+
     result = NaiveDateTime.add(from, 1_000_000_000)
 
     {{result.year, result.month, result.day}, {result.hour, result.minute, result.second}}

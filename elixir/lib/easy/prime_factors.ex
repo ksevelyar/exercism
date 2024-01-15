@@ -11,6 +11,7 @@ defmodule PrimeFactors do
   def factors_for(number), do: factors_with_acc(number, [])
 
   defp factors_with_acc(1, factors), do: Enum.reverse(factors)
+
   defp factors_with_acc(number, factors) do
     factor = Enum.find(2..number, &(rem(number, &1) == 0))
 

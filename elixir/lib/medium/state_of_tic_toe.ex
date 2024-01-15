@@ -12,7 +12,6 @@ defmodule StateOfTicTacToe do
   end
 
   defp invalid_state?(board) do
-
   end
 
   defp win?(board) do

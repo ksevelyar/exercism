@@ -17,9 +17,10 @@ defmodule Change do
 
   @spec generate(list, integer) :: {:ok, list} | {:error, String.t()}
   def generate(coins, target) do
-    acc = Enum.reduce(coins, %{0 => []}, fn coin, acc ->
-      iterate_coins(target - coin + 1, coin, acc)
-    end)
+    acc =
+      Enum.reduce(coins, %{0 => []}, fn coin, acc ->
+        iterate_coins(target - coin + 1, coin, acc)
+      end)
 
     case acc[target] do
       nil -> {:error, "cannot change"}

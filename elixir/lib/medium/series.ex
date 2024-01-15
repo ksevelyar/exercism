@@ -21,6 +21,7 @@ defmodule Series do
   end
 
   defp largest_product_in_chunks([0], _size), do: 0
+
   defp largest_product_in_chunks(digits, size) do
     digits
     |> Stream.chunk_every(size, 1, :discard)

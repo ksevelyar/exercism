@@ -15,7 +15,7 @@ defmodule Diamond do
   end
 
   defp render_row(cols, letter, row) do
-    chars = Enum.map(cols, fn col -> if row == col, do: letter, else: ' ' end)
+    chars = Enum.map(cols, fn col -> if row == col, do: letter, else: ~c" " end)
 
     List.to_string(chars) <> "\n"
   end

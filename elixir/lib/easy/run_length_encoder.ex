@@ -14,10 +14,12 @@ defmodule RunLengthEncoder do
 
     "#{acc}#{count}#{letter}"
   end
+
   defp do_encode(<<current_letter::binary-size(1), rest::binary>>, count, letter, acc)
        when current_letter == letter do
     do_encode(rest, count + 1, letter, acc)
   end
+
   defp do_encode(<<current_letter::binary-size(1), rest::binary>>, count, letter, acc) do
     count = if count > 1, do: count
 
@@ -28,6 +30,7 @@ defmodule RunLengthEncoder do
   def decode(string), do: do_decode(string, 1, "")
 
   defp do_decode(<<>>, _count, acc), do: acc
+
   defp do_decode(string, count, acc) do
     case Integer.parse(string) do
       :error ->

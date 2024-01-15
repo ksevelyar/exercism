@@ -27,6 +27,7 @@ defmodule Frequency do
   end
 
   defp merge_frequencies([], acc), do: acc
+
   defp merge_frequencies([{:ok, frequency} | frequencies], acc) do
     acc = Map.merge(acc, frequency, fn _, frq1, frq2 -> frq1 + frq2 end)
 

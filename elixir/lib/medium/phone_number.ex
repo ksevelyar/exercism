@@ -47,7 +47,11 @@ defmodule PhoneNumber do
   defp validate_area("1" <> _), do: {:error, "area code cannot start with one"}
   defp validate_area(_), do: :ok
 
-  defp validate_exchange(<<_area::binary-size(3)>> <> "0" <> _), do: {:error, "exchange code cannot start with zero"}
-  defp validate_exchange(<<_area::binary-size(3)>> <> "1" <> _), do: {:error, "exchange code cannot start with one"}
+  defp validate_exchange(<<_area::binary-size(3)>> <> "0" <> _),
+    do: {:error, "exchange code cannot start with zero"}
+
+  defp validate_exchange(<<_area::binary-size(3)>> <> "1" <> _),
+    do: {:error, "exchange code cannot start with one"}
+
   defp validate_exchange(_), do: :ok
 end
