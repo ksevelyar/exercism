@@ -1,7 +1,7 @@
 defmodule ConnectTest do
   use ExUnit.Case
 
-  def remove_spaces(rows) do
+  defp remove_spaces(rows) do
     Enum.map(rows, &String.replace(&1, " ", ""))
   end
 
