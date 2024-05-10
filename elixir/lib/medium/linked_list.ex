@@ -23,6 +23,7 @@ defmodule LinkedList do
   end
 
   defp count(nil, count), do: count
+
   defp count(list, count) do
     count(list.next, count + 1)
   end
@@ -83,6 +84,7 @@ defmodule LinkedList do
   defp to_list(%{next: nil}, acc) do
     Enum.reverse(acc)
   end
+
   defp to_list(list, acc) do
     to_list(list.next, [list.value | acc])
   end

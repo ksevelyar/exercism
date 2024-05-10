@@ -30,6 +30,7 @@ defmodule ListOps do
   @type acc :: any
   @spec foldl(list, acc, (any, acc -> acc)) :: acc
   def foldl([], acc, _f), do: acc
+
   def foldl([head | tail], acc, f) do
     foldl(tail, f.(head, acc), f)
   end

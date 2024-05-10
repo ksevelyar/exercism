@@ -13,12 +13,16 @@ defmodule Connect do
     max_row = length(board) - 1
     white_cells = parse_board(board, @white)
     start_nodes = Enum.filter(white_cells, fn {_x, y} -> y == 0 end)
-    white_result = find_neighbours_or_win(start_nodes, white_cells, fn {_x, y} -> y == max_row end, :white)
+
+    white_result =
+      find_neighbours_or_win(start_nodes, white_cells, fn {_x, y} -> y == max_row end, :white)
 
     max_col = String.length(hd(board)) * 2 - 2
     black_cells = parse_board(board, @black)
     start_nodes = Enum.filter(black_cells, fn {x, y} -> x == y end)
-    black_result = find_neighbours_or_win(start_nodes, black_cells, fn {x, y} -> x == max_col + y end, :black)
+
+    black_result =
+      find_neighbours_or_win(start_nodes, black_cells, fn {x, y} -> x == max_col + y end, :black)
 
     white_result || black_result || :none
   end
@@ -36,6 +40,7 @@ defmodule Connect do
   end
 
   defp find_neighbours_or_win([], _board, _win, _win_color), do: nil
+
   defp find_neighbours_or_win([{head_x, head_y} | tail] = visited, board, win, win_color) do
     case win.({head_x, head_y}) do
       true ->
