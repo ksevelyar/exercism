@@ -46,7 +46,9 @@ defmodule Ledger do
     currency = if currency == :eur, do: "€", else: "$"
 
     amount =
-      locale |> amount(currency, entry.amount_in_cents, number) |> String.pad_leading(@amount_length, " ")
+      locale
+      |> amount(currency, entry.amount_in_cents, number)
+      |> String.pad_leading(@amount_length, " ")
 
     description = description(entry.description)
 
