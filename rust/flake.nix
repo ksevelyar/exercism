@@ -1,28 +1,32 @@
 {
+  description = "A devShell example";
+
   inputs = {
-    nixpkgs.url = github:nixos/nixpkgs/nixos-unstable;
-    flake-utils.url = github:numtide/flake-utils;
-    rust-overlay.url = github:oxalica/rust-overlay;
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    rust-overlay.url = "github:oxalica/rust-overlay";
   };
 
-  outputs = { nixpkgs, flake-utils, rust-overlay, ... }:
-    flake-utils.lib.eachSystem [ "x86_64-linux" ] (
+  outputs = {
+    nixpkgs,
+    rust-overlay,
+    flake-utils,
+    ...
+  }:
+    flake-utils.lib.eachDefaultSystem (
       system: let
+        overlays = [(import rust-overlay)];
         pkgs = import nixpkgs {
-          inherit system;
-          overlays = [ rust-overlay.overlays.default ];
+          inherit system overlays;
         };
       in
-        {
-          devShell = pkgs.mkShell {
-            nativeBuildInputs = with pkgs; [
-              (
-                rust-bin.stable.latest.default.override {
-                  targets = [];
-                }
-              )
+        with pkgs; {
+          devShells.default = mkShell {
+            buildInputs = [
+              openssl
               pkg-config
               cargo-watch
+              rust-analyzer
+              rust-bin.stable.latest.default
             ];
           };
         }
