@@ -13,9 +13,11 @@
 
       beamPackages = pkgs.beam.packagesWith pkgs.beam.interpreters.erlang_27;
       elixir = beamPackages.elixir_1_16;
+      hex = beamPackages.hex;
     in {
       devShell = pkgs.mkShell {
         buildInputs = [
+          hex
           elixir
           pkgs.elixir_ls
           pkgs.inotify-tools
