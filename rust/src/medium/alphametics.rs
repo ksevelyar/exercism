@@ -56,7 +56,7 @@ mod tests {
         assert_alphametic_solution_eq("I + BB == ILL", &[('I', 1), ('B', 9), ('L', 0)]);
     }
 
-    #[ignore]
+      #[ignore]
     #[test]
     fn test_six_letters() {
         assert_alphametic_solution_eq(
