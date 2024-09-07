@@ -20,3 +20,4 @@ pub mod reverse_polish_notation_calculator;
 pub mod reverse_string;
 pub mod series;
 pub mod sum_of_multiples;
+pub mod eliuds_eggs;
