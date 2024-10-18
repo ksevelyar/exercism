@@ -26,3 +26,5 @@ exercism-*.tar
 /tmp/
 
 .direnv
+.nix-mix
+.erlang-history

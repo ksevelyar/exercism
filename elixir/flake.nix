@@ -21,12 +21,11 @@
           pkgs.inotify-tools
         ];
 
-        hooks = ''
+        shellHook = ''
           mkdir -p .nix-mix .nix-hex
           export MIX_HOME=$PWD/.nix-mix
           export HEX_HOME=$PWD/.nix-mix
           export PATH=$MIX_HOME/bin:$HEX_HOME/bin:$PATH
-
           mix local.hex --force
 
           export ERL_AFLAGS="-kernel shell_history enabled -kernel shell_history_path '\"$PWD/.erlang-history\"'"
