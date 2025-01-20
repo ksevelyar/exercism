@@ -93,6 +93,7 @@ defmodule CircularBuffer do
     end
   end
 
+  @impl true
   def handle_cast(:clear, state) do
     {:noreply, %{state | read_index: 0, write_index: 0, data: %{}}}
   end
