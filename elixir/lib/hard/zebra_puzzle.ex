@@ -100,9 +100,9 @@ defmodule ZebraPuzzle do
 
     condition_houses =
       Enum.filter(houses, fn condition_house ->
-        (value2 in condition_house[key2] and condition_house.position == [position - 1] &&
+        ((value2 in condition_house[key2] and condition_house.position == [position - 1]) &&
            value1 in house[key1]) ||
-          (value1 in condition_house[key1] and condition_house.position == [position + 1] &&
+          ((value1 in condition_house[key1] and condition_house.position == [position + 1]) &&
              value2 in house[key2])
       end)
 
