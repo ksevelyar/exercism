@@ -1,6 +1,6 @@
 defmodule Atbash do
   @encode_word_length 5
-  @map Enum.zip(?a..?z, ?z..?a) |> Map.new()
+  @map Enum.zip(?a..?z, ?z..?a//-1) |> Map.new()
   @allowed_chars Stream.concat(?a..?z, ?0..?9) |> Enum.to_list()
 
   def decode(cipher) do
