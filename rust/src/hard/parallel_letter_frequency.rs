@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, thread};
 
 pub fn frequency(input: &[&str], worker_count: usize) -> HashMap<char, usize> {
     if input.is_empty() {
@@ -7,20 +7,19 @@ pub fn frequency(input: &[&str], worker_count: usize) -> HashMap<char, usize> {
 
     let batch_size = calc_batch_size(input.len(), worker_count);
 
-    let handles = input
-        .chunks(batch_size)
-        .map(|chunk| {
-            let chunk: Vec<String> = chunk.iter().map(|s| s.to_string()).collect();
-            std::thread::spawn(move || calc_frequencies(chunk))
+    thread::scope(|scope| {
+        let handles = input
+            .chunks(batch_size)
+            .map(|chunk| scope.spawn(move || calc_frequencies(chunk)))
+            .map(move |handle| handle.join().unwrap());
+
+        handles.fold(HashMap::new(), |mut map, item| {
+            item.iter().for_each(|(key, count)| {
+                *map.entry(*key).or_insert(0) += count;
+            });
+
+            map
         })
-        .map(|handle| handle.join().unwrap());
-
-    handles.fold(HashMap::new(), |mut map, item| {
-        item.iter().for_each(|(key, count)| {
-            *map.entry(*key).or_insert(0) += count;
-        });
-
-        map
     })
 }
 
@@ -31,7 +30,7 @@ fn calc_batch_size(len: usize, worker_count: usize) -> usize {
     }
 }
 
-fn calc_frequencies(chunk: Vec<String>) -> HashMap<char, usize> {
+fn calc_frequencies(chunk: &[&str]) -> HashMap<char, usize> {
     chunk.iter().fold(HashMap::new(), |mut map, item| {
         item.chars()
             .filter(|ch| ch.is_alphabetic())
@@ -46,24 +45,29 @@ fn calc_frequencies(chunk: Vec<String>) -> HashMap<char, usize> {
     })
 }
 
-const STAR_SPANGLED_BANNER: [&str; 8] = [
-    "O say can you see by the dawn's early light,",
-    "What so proudly we hailed at the twilight's last gleaming,",
-    "Whose broad stripes and bright stars through the perilous fight,",
-    "O'er the ramparts we watched, were so gallantly streaming?",
-    "And the rockets' red glare, the bombs bursting in air,",
-    "Gave proof through the night that our flag was still there;",
-    "O say does that star-spangled banner yet wave,",
-    "O'er the land of the free and the home of the brave?",
-];
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-#[test]
-fn two_threads() {
-    let freqs = frequency(&STAR_SPANGLED_BANNER, 2);
+    const STAR_SPANGLED_BANNER: [&str; 8] = [
+        "O say can you see by the dawn's early light,",
+        "What so proudly we hailed at the twilight's last gleaming,",
+        "Whose broad stripes and bright stars through the perilous fight,",
+        "O'er the ramparts we watched, were so gallantly streaming?",
+        "And the rockets' red glare, the bombs bursting in air,",
+        "Gave proof through the night that our flag was still there;",
+        "O say does that star-spangled banner yet wave,",
+        "O'er the land of the free and the home of the brave?",
+    ];
 
-    assert_eq!(freqs.get(&'a'), Some(&34));
+    #[test]
+    fn two_threads() {
+        let freqs = frequency(&STAR_SPANGLED_BANNER, 2);
 
-    assert_eq!(freqs.get(&'t'), Some(&38));
+        assert_eq!(freqs.get(&'a'), Some(&34));
 
-    assert_eq!(freqs.get(&'?'), None);
+        assert_eq!(freqs.get(&'t'), Some(&38));
+
+        assert_eq!(freqs.get(&'?'), None);
+    }
 }
