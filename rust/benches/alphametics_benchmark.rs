@@ -1,6 +1,6 @@
 use rust::medium::alphametics::solve;
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("six letters", |b| {

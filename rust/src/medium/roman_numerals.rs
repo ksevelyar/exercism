@@ -47,10 +47,10 @@ impl Roman {
 
     fn overload(count: u32, factor: u32) -> String {
         match count {
-            1 | 2 | 3 => Roman::letter(factor).repeat(count as usize),
+            1..=3 => Roman::letter(factor).repeat(count as usize),
             4 => format!("{}{}", Roman::letter(factor), Roman::letter(factor * 5)),
             5 => Roman::letter(factor * 5).to_string(),
-            6 | 7 | 8 => format!(
+            6..=8 => format!(
                 "{}{}",
                 Roman::letter(factor * 5),
                 Roman::letter(factor).repeat((count - 5) as usize)

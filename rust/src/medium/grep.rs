@@ -67,11 +67,7 @@ fn is_match(line: &str, pattern: &str, flags: &Flags) -> bool {
         } => line.contains(pattern),
     };
 
-    if flags.invert {
-        !is_match
-    } else {
-        is_match
-    }
+    if flags.invert { !is_match } else { is_match }
 }
 
 pub fn grep(pattern: &str, flags: &Flags, files: &[&str]) -> Result<Vec<String>, Error> {

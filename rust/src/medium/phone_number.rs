@@ -1,31 +1,42 @@
 const NANP_LEN: usize = 10;
-const ZONE_START: usize = 0;
-const SUBSCRIBER_START: usize = 3;
 const NOT_ALLOWED_FOR_START: [char; 2] = ['0', '1'];
 
-fn trim_chars(user_number: &str) -> Vec<char> {
-    let chars = user_number.chars().filter(|ch| ch.is_digit(10));
+fn trim_country_code_and_non_digits(phone: &str) -> String {
+    let chars = phone.chars().filter(|ch| ch.is_ascii_digit());
 
-    if chars.clone().count() == 11usize && chars.clone().next() == Some('1') {
+    let is_phone_starts_with_country_code =
+        chars.clone().next() == Some('1') && chars.clone().count() == 11;
+
+    if is_phone_starts_with_country_code {
         chars.skip(1).collect()
     } else {
         chars.collect()
     }
 }
 
-fn is_invalid_area_or_subscriber(area_start: char, subscriber_start: char) -> bool {
-    NOT_ALLOWED_FOR_START.contains(&area_start) || NOT_ALLOWED_FOR_START.contains(&subscriber_start)
-}
-
-pub fn number(user_number: &str) -> Option<String> {
-    let chars = trim_chars(user_number);
-    let is_invalid = is_invalid_area_or_subscriber(chars[ZONE_START], chars[SUBSCRIBER_START]);
-
-    if chars.len() != NANP_LEN || is_invalid {
+fn validate(phone: &str) -> Option<()> {
+    if phone.len() != NANP_LEN {
         return None;
     }
 
-    Some(chars.iter().collect())
+    let zone_start = phone.chars().next()?;
+    let local_number_start = phone.chars().nth(3)?;
+
+    if NOT_ALLOWED_FOR_START.contains(&zone_start)
+        || NOT_ALLOWED_FOR_START.contains(&local_number_start)
+    {
+        return None;
+    }
+
+    Some(())
+}
+
+pub fn number(phone: &str) -> Option<String> {
+    let phone = trim_country_code_and_non_digits(phone);
+
+    validate(&phone)?;
+
+    Some(phone)
 }
 
 #[test]

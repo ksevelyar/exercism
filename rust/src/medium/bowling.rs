@@ -46,13 +46,13 @@ impl BowlingGame {
         if let [head @ .., last] = self.frames.as_slice() {
             let tail = match *last {
                 [Some(pins0), None, None] if pins0 + pins > 10 && pins0 != 10 => {
-                    return Err(Error::NotEnoughPinsLeft)
+                    return Err(Error::NotEnoughPinsLeft);
                 }
                 [Some(pins0), None, None] => [Some(pins0), Some(pins), None],
                 [Some(10), Some(pins1), None]
                     if (pins + pins1 > 10 || pins == 10) && pins1 != 10 =>
                 {
-                    return Err(Error::NotEnoughPinsLeft)
+                    return Err(Error::NotEnoughPinsLeft);
                 }
                 [Some(pins0), Some(pins1), None] => [Some(pins0), Some(pins1), Some(pins)],
                 _ => [Some(pins), None, None],

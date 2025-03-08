@@ -9,6 +9,12 @@ pub struct Robot {
     name: String,
 }
 
+impl Default for Robot {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Robot {
     fn random_name() -> String {
         let mut rng = rand::thread_rng();

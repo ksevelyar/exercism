@@ -1,7 +1,7 @@
 {
   description = "exercism-elixir";
 
-  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+  inputs.nixpkgs.url = "github:nixos/nixpkgs/b58df7fc9d5f02c269091f2b0b81a6e06fc859bb";
 
   outputs = {
     self,
