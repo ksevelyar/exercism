@@ -13,7 +13,7 @@ impl School {
     }
 
     pub fn add(&mut self, grade: u32, student: &str) {
-        let entry = self.students.entry(grade).or_insert(BTreeSet::new());
+        let entry = self.students.entry(grade).or_default();
         entry.insert(student.to_owned());
     }
 

@@ -44,8 +44,8 @@ fn reduce(numerator: BigInt, denumerator: BigInt) -> Decimal {
         && &denumerator % 10 == 0.into()
     {
         reduce(
-            numerator / BigInt::try_from(10u32).unwrap(),
-            denumerator / BigInt::try_from(10u32).unwrap(),
+            numerator / BigInt::from(10u32),
+            denumerator / BigInt::from(10u32),
         )
     } else {
         Decimal {

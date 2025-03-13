@@ -1,6 +1,7 @@
 pub mod armstrong_number;
 pub mod beer_song;
 pub mod bob;
+pub mod bottle_song;
 pub mod collatz_conjecture;
 pub mod difference_of_squares;
 pub mod diffie_hellman;

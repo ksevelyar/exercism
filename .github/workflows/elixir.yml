@@ -3,7 +3,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Elixir CI
+name: Elixir
 
 on:
   push:
@@ -15,8 +15,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
-    name: Build and test
+  test:
     runs-on: ubuntu-latest
     defaults:
       run:

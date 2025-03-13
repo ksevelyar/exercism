@@ -1,4 +1,4 @@
-use rust::medium::alphametics::solve;
+use exercism::medium::alphametics::solve;
 
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 
