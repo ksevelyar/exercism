@@ -1,4 +1,20 @@
-pub struct LinkedList<T>(std::marker::PhantomData<T>);
+use std::marker::PhantomData;
+use std::ptr::NonNull;
+
+type Link<T> = Option<NonNull<Node<T>>>;
+
+pub struct LinkedList<T> {
+    front: Link<T>,
+    back: Link<T>,
+    len: usize,
+    _hint: PhantomData<T>,
+}
+
+struct Node<T> {
+    front: Link<T>,
+    back: Link<T>,
+    elem: T,
+}
 
 pub struct Cursor<'a, T>(std::marker::PhantomData<&'a mut T>);
 
@@ -6,7 +22,12 @@ pub struct Iter<'a, T>(std::marker::PhantomData<&'a T>);
 
 impl<T> LinkedList<T> {
     pub fn new() -> Self {
-        todo!()
+        Self {
+            front: None,
+            back: None,
+            len: 0,
+            _hint: PhantomData,
+        }
     }
 
     // You may be wondering why it's necessary to have is_empty()
@@ -15,7 +36,7 @@ impl<T> LinkedList<T> {
     // whereas is_empty() is almost always cheap.
     // (Also ask yourself whether len() is expensive for LinkedList)
     pub fn is_empty(&self) -> bool {
-        todo!()
+        self.front.is_none() && self.back.is_none()
     }
 
     pub fn len(&self) -> usize {
@@ -80,5 +101,19 @@ impl<'a, T> Iterator for Iter<'a, T> {
 
     fn next(&mut self) -> Option<&'a T> {
         todo!()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn basics_empty_list() {
+        let list: LinkedList<i32> = LinkedList::new();
+
+        assert_eq!(list.len(), 0);
+
+        assert!(list.is_empty());
     }
 }
