@@ -25,7 +25,10 @@ pub struct Cursor<'a, T> {
     index: Option<usize>,
 }
 
-pub struct Iter<'a, T>(std::marker::PhantomData<&'a T>);
+pub struct Iter<'a, T> {
+    cur: Link<T>,
+    list: &'a LinkedList<T>,
+}
 
 impl<T> LinkedList<T> {
     pub fn new() -> Self {
@@ -72,7 +75,10 @@ impl<T> LinkedList<T> {
 
     /// Return an iterator that moves from front to back
     pub fn iter(&self) -> Iter<'_, T> {
-        todo!()
+        Iter {
+            cur: self.front,
+            list: self,
+        }
     }
 }
 
@@ -139,10 +145,41 @@ impl<'a, T: std::fmt::Debug> Cursor<'a, T> {
                 self.cur = Some(new_node);
 
                 self.list.front = Some(new_node);
-                self.index = Some(0)
+                self.list.back = Some(new_node);
+                // self.index = Some(0)
             }
 
-            // self.list.front = Some(new_front);
+            self.list.len += 1;
+        }
+    }
+
+    pub fn insert_after(&mut self, element: T) {
+        unsafe {
+            let new_node = NonNull::new_unchecked(Box::into_raw(Box::new(Node {
+                front: None,
+                back: None,
+                elem: element,
+            })));
+
+            if let Some(cur) = self.cur {
+                (*new_node.as_ptr()).front = self.cur;
+                (*new_node.as_ptr()).back = (*cur.as_ptr()).back;
+                (*cur.as_ptr()).back = Some(new_node);
+
+                // set new front if list.front is cur
+                if self.list.back == self.cur {
+                    self.list.back = Some(new_node)
+                };
+
+                // *self.index.as_mut().unwrap() += 1;
+            } else {
+                self.cur = Some(new_node);
+
+                self.list.back = Some(new_node);
+                self.list.front = Some(new_node);
+                // self.index = Some(0)
+            }
+
             self.list.len += 1;
         }
     }
@@ -152,7 +189,13 @@ impl<'a, T> Iterator for Iter<'a, T> {
     type Item = &'a T;
 
     fn next(&mut self) -> Option<&'a T> {
-        todo!()
+        unsafe {
+            self.cur.map(|node| {
+                self.cur = (*node.as_ptr()).back;
+
+                &(*node.as_ptr()).elem
+            })
+        }
     }
 }
 
@@ -176,5 +219,18 @@ mod tests {
         list.cursor_front().insert_before(0);
 
         assert_eq!(Some(0), list.cursor_front().take());
+    }
+
+    #[test]
+    fn iter() {
+        let mut list: LinkedList<i32> = LinkedList::new();
+
+        for num in 0..10 {
+            list.cursor_back().insert_after(num);
+        }
+
+        for (num, &entered_num) in (0..10).zip(list.iter()) {
+            assert_eq!(num, entered_num);
+        }
     }
 }
