@@ -1,13 +1,14 @@
-use std::marker::PhantomData;
+// use std::marker::PhantomData;
 use std::ptr::NonNull;
 
 type Link<T> = Option<NonNull<Node<T>>>;
 
+#[derive(Debug)]
 pub struct LinkedList<T> {
     front: Link<T>,
     back: Link<T>,
     len: usize,
-    _hint: PhantomData<T>,
+    // _hint: PhantomData<T>,
 }
 
 struct Node<T> {
@@ -16,7 +17,13 @@ struct Node<T> {
     elem: T,
 }
 
-pub struct Cursor<'a, T>(std::marker::PhantomData<&'a mut T>);
+// pub struct Cursor<'a, T>(std::marker::PhantomData<&'a mut T>);
+#[derive(Debug)]
+pub struct Cursor<'a, T> {
+    cur: Link<T>,
+    list: &'a mut LinkedList<T>,
+    index: Option<usize>,
+}
 
 pub struct Iter<'a, T>(std::marker::PhantomData<&'a T>);
 
@@ -26,7 +33,7 @@ impl<T> LinkedList<T> {
             front: None,
             back: None,
             len: 0,
-            _hint: PhantomData,
+            // _hint: PhantomData,
         }
     }
 
@@ -44,13 +51,23 @@ impl<T> LinkedList<T> {
     }
 
     /// Return a cursor positioned on the front element
-    pub fn cursor_front(&mut self) -> Cursor<'_, T> {
-        todo!()
+    pub fn cursor_front(&mut self) -> Cursor<T> {
+        let index = self.front.map(|_| 0);
+
+        Cursor {
+            cur: self.front,
+            list: self,
+            index: index,
+        }
     }
 
     /// Return a cursor positioned on the back element
     pub fn cursor_back(&mut self) -> Cursor<'_, T> {
-        todo!()
+        Cursor {
+            cur: self.back,
+            list: self,
+            index: None,
+        }
     }
 
     /// Return an iterator that moves from front to back
@@ -61,10 +78,10 @@ impl<T> LinkedList<T> {
 
 // the cursor is expected to act as if it is at the position of an element
 // and it also has to work with and be able to insert into an empty list.
-impl<T> Cursor<'_, T> {
+impl<'a, T: std::fmt::Debug> Cursor<'a, T> {
     /// Take a mutable reference to the current element
     pub fn peek_mut(&mut self) -> Option<&mut T> {
-        todo!()
+        unsafe { self.cur.map(|node| &mut (*node.as_ptr()).elem) }
     }
 
     /// Move one position forward (towards the back) and
@@ -84,15 +101,50 @@ impl<T> Cursor<'_, T> {
     /// to the neighboring element that's closest to the back. This can be
     /// either the next or previous position.
     pub fn take(&mut self) -> Option<T> {
-        todo!()
+        unsafe {
+            self.cur.map(|cur| {
+                self.list.len -= 1;
+
+                if let Some(next) = (*cur.as_ptr()).back {
+                    self.cur = Some(next);
+                } else if let Some(prev) = (*cur.as_ptr()).front {
+                    self.cur = Some(prev);
+                }
+
+                Box::from_raw(cur.as_ptr()).elem
+            })
+        }
     }
 
-    pub fn insert_after(&mut self, _element: T) {
-        todo!()
-    }
+    pub fn insert_before(&mut self, element: T) {
+        unsafe {
+            let new_node = NonNull::new_unchecked(Box::into_raw(Box::new(Node {
+                front: None,
+                back: None,
+                elem: element,
+            })));
 
-    pub fn insert_before(&mut self, _element: T) {
-        todo!()
+            if let Some(cur) = self.cur {
+                (*new_node.as_ptr()).back = self.cur;
+                (*new_node.as_ptr()).front = (*cur.as_ptr()).front;
+                (*cur.as_ptr()).front = Some(new_node);
+
+                // set new front if list.front is cur
+                if self.list.front == self.cur {
+                    self.list.front = Some(new_node)
+                };
+
+                *self.index.as_mut().unwrap() += 1;
+            } else {
+                self.cur = Some(new_node);
+
+                self.list.front = Some(new_node);
+                self.index = Some(0)
+            }
+
+            // self.list.front = Some(new_front);
+            self.list.len += 1;
+        }
     }
 }
 
@@ -115,5 +167,14 @@ mod tests {
         assert_eq!(list.len(), 0);
 
         assert!(list.is_empty());
+    }
+
+    #[test]
+    fn cursor_insert_before_on_empty_list() {
+        let mut list = LinkedList::new();
+
+        list.cursor_front().insert_before(0);
+
+        assert_eq!(Some(0), list.cursor_front().take());
     }
 }
