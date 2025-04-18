@@ -1,4 +1,3 @@
-// use std::marker::PhantomData;
 use std::ptr::NonNull;
 
 type Link<T> = Option<NonNull<Node<T>>>;
@@ -8,7 +7,6 @@ pub struct LinkedList<T> {
     front: Link<T>,
     back: Link<T>,
     len: usize,
-    // _hint: PhantomData<T>,
 }
 
 struct Node<T> {
@@ -17,17 +15,15 @@ struct Node<T> {
     elem: T,
 }
 
-// pub struct Cursor<'a, T>(std::marker::PhantomData<&'a mut T>);
 #[derive(Debug)]
 pub struct Cursor<'a, T> {
     cur: Link<T>,
     list: &'a mut LinkedList<T>,
-    index: Option<usize>,
 }
 
 pub struct Iter<'a, T> {
     cur: Link<T>,
-    list: &'a LinkedList<T>,
+    _list: &'a LinkedList<T>,
 }
 
 impl<T> LinkedList<T> {
@@ -36,31 +32,22 @@ impl<T> LinkedList<T> {
             front: None,
             back: None,
             len: 0,
-            // _hint: PhantomData,
         }
     }
 
-    // You may be wondering why it's necessary to have is_empty()
-    // when it can easily be determined from len().
-    // It's good custom to have both because len() can be expensive for some types,
-    // whereas is_empty() is almost always cheap.
-    // (Also ask yourself whether len() is expensive for LinkedList)
     pub fn is_empty(&self) -> bool {
-        self.front.is_none() && self.back.is_none()
+        self.len == 0
     }
 
     pub fn len(&self) -> usize {
-        0
+        self.len
     }
 
     /// Return a cursor positioned on the front element
     pub fn cursor_front(&mut self) -> Cursor<T> {
-        let index = self.front.map(|_| 0);
-
         Cursor {
             cur: self.front,
             list: self,
-            index: index,
         }
     }
 
@@ -69,7 +56,6 @@ impl<T> LinkedList<T> {
         Cursor {
             cur: self.back,
             list: self,
-            index: None,
         }
     }
 
@@ -77,14 +63,14 @@ impl<T> LinkedList<T> {
     pub fn iter(&self) -> Iter<'_, T> {
         Iter {
             cur: self.front,
-            list: self,
+            _list: self,
         }
     }
 }
 
 // the cursor is expected to act as if it is at the position of an element
 // and it also has to work with and be able to insert into an empty list.
-impl<'a, T: std::fmt::Debug> Cursor<'a, T> {
+impl<T> Cursor<'_, T> {
     /// Take a mutable reference to the current element
     pub fn peek_mut(&mut self) -> Option<&mut T> {
         unsafe { self.cur.map(|node| &mut (*node.as_ptr()).elem) }
@@ -94,13 +80,33 @@ impl<'a, T: std::fmt::Debug> Cursor<'a, T> {
     /// return a reference to the new position
     #[allow(clippy::should_implement_trait)]
     pub fn next(&mut self) -> Option<&mut T> {
-        todo!()
+        unsafe {
+            self.cur.map(|cur| {
+                if let Some(next) = (*cur.as_ptr()).back {
+                    self.cur = Some(next);
+
+                    Some(&mut (*next.as_ptr()).elem)
+                } else {
+                    None
+                }
+            })?
+        }
     }
 
     /// Move one position backward (towards the front) and
     /// return a reference to the new position
     pub fn prev(&mut self) -> Option<&mut T> {
-        todo!()
+        unsafe {
+            self.cur.map(|cur| {
+                if let Some(prev) = (*cur.as_ptr()).front {
+                    self.cur = Some(prev);
+
+                    Some(&mut (*prev.as_ptr()).elem)
+                } else {
+                    None
+                }
+            })?
+        }
     }
 
     /// Remove and return the element at the current position and move the cursor
@@ -111,11 +117,33 @@ impl<'a, T: std::fmt::Debug> Cursor<'a, T> {
             self.cur.map(|cur| {
                 self.list.len -= 1;
 
-                if let Some(next) = (*cur.as_ptr()).back {
-                    self.cur = Some(next);
+                self.cur = if let Some(next) = (*cur.as_ptr()).back {
+                    (*next.as_ptr()).front = (*cur.as_ptr()).front;
+
+                    if let Some(prev) = (*cur.as_ptr()).front {
+                        (*prev.as_ptr()).back = Some(next);
+                    }
+
+                    Some(next)
                 } else if let Some(prev) = (*cur.as_ptr()).front {
-                    self.cur = Some(prev);
-                }
+                    (*prev.as_ptr()).back = None;
+
+                    if let Some(next) = (*cur.as_ptr()).back {
+                        (*next.as_ptr()).front = Some(prev);
+                    }
+
+                    Some(prev)
+                } else {
+                    None
+                };
+
+                if self.list.front == Some(cur) {
+                    self.list.front = self.cur;
+                };
+
+                if self.list.back == Some(cur) {
+                    self.list.back = self.cur;
+                };
 
                 Box::from_raw(cur.as_ptr()).elem
             })
@@ -133,20 +161,20 @@ impl<'a, T: std::fmt::Debug> Cursor<'a, T> {
             if let Some(cur) = self.cur {
                 (*new_node.as_ptr()).back = self.cur;
                 (*new_node.as_ptr()).front = (*cur.as_ptr()).front;
+
+                if let Some(prev) = (*cur.as_ptr()).front {
+                    (*prev.as_ptr()).back = Some(new_node);
+                }
                 (*cur.as_ptr()).front = Some(new_node);
 
-                // set new front if list.front is cur
                 if self.list.front == self.cur {
                     self.list.front = Some(new_node)
                 };
-
-                *self.index.as_mut().unwrap() += 1;
             } else {
                 self.cur = Some(new_node);
 
                 self.list.front = Some(new_node);
                 self.list.back = Some(new_node);
-                // self.index = Some(0)
             }
 
             self.list.len += 1;
@@ -164,20 +192,20 @@ impl<'a, T: std::fmt::Debug> Cursor<'a, T> {
             if let Some(cur) = self.cur {
                 (*new_node.as_ptr()).front = self.cur;
                 (*new_node.as_ptr()).back = (*cur.as_ptr()).back;
+
+                if let Some(next) = (*cur.as_ptr()).back {
+                    (*next.as_ptr()).front = Some(new_node);
+                }
                 (*cur.as_ptr()).back = Some(new_node);
 
-                // set new front if list.front is cur
                 if self.list.back == self.cur {
                     self.list.back = Some(new_node)
                 };
-
-                // *self.index.as_mut().unwrap() += 1;
             } else {
                 self.cur = Some(new_node);
 
                 self.list.back = Some(new_node);
                 self.list.front = Some(new_node);
-                // self.index = Some(0)
             }
 
             self.list.len += 1;
@@ -196,6 +224,24 @@ impl<'a, T> Iterator for Iter<'a, T> {
                 &(*node.as_ptr()).elem
             })
         }
+    }
+}
+
+impl<T> FromIterator<T> for LinkedList<T> {
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+        let mut list = Self::new();
+
+        for item in iter {
+            list.cursor_back().insert_after(item);
+        }
+
+        list
+    }
+}
+
+impl<T> Drop for LinkedList<T> {
+    fn drop(&mut self) {
+        while self.cursor_front().take().is_some() {}
     }
 }
 
@@ -232,5 +278,55 @@ mod tests {
         for (num, &entered_num) in (0..10).zip(list.iter()) {
             assert_eq!(num, entered_num);
         }
+    }
+
+    #[test]
+    fn cursor_insert_after_in_middle() {
+        let mut list = (0..10).collect::<LinkedList<_>>();
+
+        {
+            let mut cursor = list.cursor_front();
+            cursor.next();
+            cursor.next();
+            cursor.next();
+            let didnt_run_into_end = cursor.next();
+
+            assert!(didnt_run_into_end.is_some());
+
+            for n in (0..10).rev() {
+                cursor.insert_after(n);
+            }
+        }
+
+        assert_eq!(list.len(), 20);
+
+        let expected = (0..5).chain(0..10).chain(5..10);
+
+        assert!(expected.eq(list.iter().cloned()));
+    }
+
+    #[test]
+    fn cursor_insert_before_in_middle() {
+        let mut list = (0..10).collect::<LinkedList<_>>();
+
+        {
+            let mut cursor = list.cursor_back();
+            cursor.prev();
+            cursor.prev();
+            cursor.prev();
+            let didnt_run_into_end = cursor.prev();
+
+            assert!(didnt_run_into_end.is_some());
+
+            for n in 0..10 {
+                cursor.insert_before(n);
+            }
+        }
+
+        assert_eq!(list.len(), 20);
+
+        let expected = (0..5).chain(0..10).chain(5..10);
+
+        assert!(expected.eq(list.iter().cloned()));
     }
 }
