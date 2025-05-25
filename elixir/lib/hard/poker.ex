@@ -136,13 +136,9 @@ defmodule Poker do
   defp check_variant(hands, "straight") do
     Enum.filter(hands, fn hand ->
       [{c, _}, {l, _}, _, _, _] = hand
-      # ace can start a straight
+
       straight = [c, c - 1, c - 2, c - 3, c - 4]
       low_ace_straight = [14, l, l - 1, l - 2, l - 3]
-
-      # case hand do
-      #
-      # end
 
       Enum.map(hand, &elem(&1, 0)) in [straight, low_ace_straight]
     end)
