@@ -1,10 +1,10 @@
 /// Given a list of poker hands, return a list of those hands which win.
 ///
 enum HandVariant {
-    //StraightFlush,
-    //FourOfAKind,
-    //FullHouse,
-    //Flush,
+    StraightFlush,
+    FourOfAKind,
+    FullHouse,
+    Flush,
     Straight,
     ThreeOfAKind,
     TwoPair,
@@ -12,11 +12,13 @@ enum HandVariant {
     HighCard,
 }
 
-const HAND_VARIANTS: [HandVariant; 5] = [
-    //HandVariant::StraightFlush,
-    //HandVariant::FourOfAKind,
-    //HandVariant::FullHouse,
-    //HandVariant::Flush,
+type SortedHand<'a> = Vec<(Vec<(u8, u8)>, &'a str)>;
+
+const HAND_VARIANTS: [HandVariant; 9] = [
+    HandVariant::StraightFlush,
+    HandVariant::FourOfAKind,
+    HandVariant::FullHouse,
+    HandVariant::Flush,
     HandVariant::Straight,
     HandVariant::ThreeOfAKind,
     HandVariant::TwoPair,
@@ -42,65 +44,97 @@ pub fn winning_hands<'a>(hands: &[&'a str]) -> Vec<&'a str> {
         .collect()
 }
 
-fn get_variant_hands<'a>(
-    variant: &HandVariant,
-    hands: &[&'a str],
-) -> Option<Vec<(Vec<(u8, u8)>, &'a str)>> {
-    let hands = hands.iter().map(|hand| (parse_hand(hand), *hand));
+fn get_variant_hands<'a>(variant: &HandVariant, hands: &[&'a str]) -> Option<SortedHand<'a>> {
+    let parsed_hands = hands.iter().map(|&hand| (parse_hand(hand), hand));
 
-    match variant {
-        HandVariant::Straight => {
-            let filtered: Vec<_> = hands
-                .filter(|(parsed, _)| parsed.iter().enumerate().all(|(ind, &(rank, _freq))| {
-                    let min = parsed.iter().map(|(rank,_)| rank).min().unwrap();
+    let filtered = match variant {
+        HandVariant::StraightFlush => filter_straight_flush(parsed_hands),
+        HandVariant::FourOfAKind => filter_by_frequency(parsed_hands, 4, 1),
+        HandVariant::FullHouse => filter_full_house(parsed_hands),
+        HandVariant::Flush => filter_flush(parsed_hands),
+        HandVariant::Straight => filter_straight(parsed_hands),
+        HandVariant::ThreeOfAKind => filter_by_frequency(parsed_hands, 3, 1),
+        HandVariant::TwoPair => filter_by_frequency(parsed_hands, 2, 2),
+        HandVariant::Pair => filter_by_frequency(parsed_hands, 2, 1),
+        HandVariant::HighCard => parsed_hands.collect(),
+    };
 
-                    (rank == *min + 4 - ind as u8) || (ind == 0 && rank == 14)
-                }))
-                .collect();
-
-            if filtered.is_empty() {
-                None
-            } else {
-                Some(filtered)
-            }
-        }
-        HandVariant::ThreeOfAKind => {
-            let filtered: Vec<_> = hands
-                .filter(|(parsed, _)| parsed.iter().any(|&(_rank, freq)| freq == 3))
-                .collect();
-
-            if filtered.is_empty() {
-                None
-            } else {
-                Some(filtered)
-            }
-        }
-        HandVariant::TwoPair => {
-            let filtered: Vec<_> = hands
-                .filter(|(parsed, _)| {
-                    parsed.iter().filter(|&(_rank, freq)| *freq == 2).count() == 2
-                })
-                .collect();
-
-            if filtered.is_empty() {
-                None
-            } else {
-                Some(filtered)
-            }
-        }
-        HandVariant::Pair => {
-            let filtered: Vec<_> = hands
-                .filter(|(parsed, _)| parsed.iter().any(|&(_rank, freq)| freq == 2))
-                .collect();
-
-            if filtered.is_empty() {
-                None
-            } else {
-                Some(filtered)
-            }
-        }
-        HandVariant::HighCard => Some(hands.collect()),
+    if filtered.is_empty() {
+        None
+    } else {
+        Some(filtered)
     }
+}
+
+fn filter_straight_flush<'a>(
+    hands: impl Iterator<Item = (Vec<(u8, u8)>, &'a str)>,
+) -> Vec<(Vec<(u8, u8)>, &'a str)> {
+    hands
+        .filter(|(parsed, raw)| is_straight(parsed) && is_flush(raw))
+        .map(|(mut v, s)| {
+            if v[0].0 == 14 {
+                v[0].0 = 0;
+            }
+            (v, s)
+        })
+        .collect()
+}
+
+fn filter_straight<'a>(
+    hands: impl Iterator<Item = (Vec<(u8, u8)>, &'a str)>,
+) -> Vec<(Vec<(u8, u8)>, &'a str)> {
+    hands
+        .filter(|(parsed, _)| is_straight(parsed))
+        .map(|(mut v, s)| {
+            if v[0].0 == 14 {
+                v[0].0 = 0;
+            }
+            (v, s)
+        })
+        .collect()
+}
+
+fn is_straight(parsed: &[(u8, u8)]) -> bool {
+    parsed.iter().enumerate().all(|(i, &(rank, _))| {
+        let min = parsed.iter().map(|(r, _)| *r).min().unwrap();
+        (rank == min + 4 - i as u8) || (i == 0 && rank == 14)
+    })
+}
+
+fn is_flush(raw_hand: &str) -> bool {
+    let mut suits = raw_hand
+        .split_whitespace()
+        .map(|card| card.chars().last().unwrap());
+    let first = suits.next().unwrap();
+    suits.all(|suit| suit == first)
+}
+
+fn filter_flush<'a>(
+    hands: impl Iterator<Item = (Vec<(u8, u8)>, &'a str)>,
+) -> Vec<(Vec<(u8, u8)>, &'a str)> {
+    hands.filter(|(_, raw)| is_flush(raw)).collect()
+}
+
+fn filter_by_frequency<'a>(
+    hands: impl Iterator<Item = (Vec<(u8, u8)>, &'a str)>,
+    freq: u8,
+    count: usize,
+) -> Vec<(Vec<(u8, u8)>, &'a str)> {
+    hands
+        .filter(|(parsed, _)| parsed.iter().filter(|&&(_, f)| f == freq).count() == count)
+        .collect()
+}
+
+fn filter_full_house<'a>(
+    hands: impl Iterator<Item = (Vec<(u8, u8)>, &'a str)>,
+) -> Vec<(Vec<(u8, u8)>, &'a str)> {
+    hands
+        .filter(|(parsed, _)| {
+            let has_three = parsed.iter().any(|&(_, f)| f == 3);
+            let has_two = parsed.iter().any(|&(_, f)| f == 2);
+            has_three && has_two
+        })
+        .collect()
 }
 
 fn card_rank(card: &str) -> u8 {
@@ -393,7 +427,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn even_though_an_ace_is_usually_high_a_5_high_straight_is_the_lowest_scoring_straight() {
         let input = &["2H 3C 4D 5D 6H", "4S AH 3S 2D 5H"];
 
@@ -405,7 +438,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn flush_beats_a_straight() {
         let input = &["4C 6H 7D 8D 5H", "2S 4S 5S 6S 7S"];
 
@@ -417,7 +449,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn both_hands_have_a_flush_tie_goes_to_high_card_down_to_the_last_one_if_necessary() {
         let input = &["2H 7H 8H 9H 6H", "3S 5S 6S 7S 8S"];
 
@@ -429,7 +460,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn full_house_beats_a_flush() {
         let input = &["3H 6H 7H 8H 5H", "4S 5H 4C 5D 4H"];
 
@@ -441,7 +471,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn both_hands_have_a_full_house_tie_goes_to_highest_ranked_triplet() {
         let input = &["4H 4S 4D 9S 9D", "5H 5S 5D 8S 8D"];
 
@@ -453,7 +482,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn with_multiple_decks_both_hands_have_a_full_house_with_the_same_triplet_tie_goes_to_the_pair()
     {
         let input = &["5H 5S 5D 9S 9D", "5H 5S 5D 8S 8D"];
@@ -466,7 +494,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn four_of_a_kind_beats_a_full_house() {
         let input = &["4S 5H 4D 5D 4H", "3S 3H 2S 3D 3C"];
 
@@ -478,7 +505,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn both_hands_have_four_of_a_kind_tie_goes_to_high_quad() {
         let input = &["2S 2H 2C 8D 2D", "4S 5H 5S 5D 5C"];
 
@@ -490,7 +516,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn with_multiple_decks_both_hands_with_identical_four_of_a_kind_tie_determined_by_kicker() {
         let input = &["3S 3H 2S 3D 3C", "3S 3H 4S 3D 3C"];
 
@@ -502,7 +527,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn straight_flush_beats_four_of_a_kind() {
         let input = &["4S 5H 5S 5D 5C", "7S 8S 9S 6S 10S"];
 
@@ -514,7 +538,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn aces_can_end_a_straight_flush_10_j_q_k_a() {
         let input = &["KC AH AS AD AC", "10C JC QC KC AC"];
 
@@ -526,7 +549,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn aces_can_start_a_straight_flush_a_2_3_4_5() {
         let input = &["KS AH AS AD AC", "4H AH 3H 2H 5H"];
 
@@ -538,7 +560,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn aces_cannot_be_in_the_middle_of_a_straight_flush_q_k_a_2_3() {
         let input = &["2C AC QC 10C KC", "QH KH AH 2H 3H"];
 
@@ -550,7 +571,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn both_hands_have_a_straight_flush_tie_goes_to_highest_ranked_card() {
         let input = &["4H 6H 7H 8H 5H", "5S 7S 8S 9S 6S"];
 
@@ -562,7 +582,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn even_though_an_ace_is_usually_high_a_5_high_straight_flush_is_the_lowest_scoring_straight_flush()
      {
         let input = &["2H 3H 4H 5H 6H", "4D AD 3D 2D 5D"];
