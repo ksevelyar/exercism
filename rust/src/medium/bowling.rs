@@ -11,6 +11,12 @@ pub struct BowlingGame {
     frames: Vec<[Option<u16>; 3]>,
 }
 
+impl Default for BowlingGame {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl BowlingGame {
     pub fn new() -> Self {
         Self { frames: Vec::new() }
@@ -101,7 +107,6 @@ impl BowlingGame {
                     _ => Some(frame_pins),
                 }
             })
-            .into_iter()
             .sum()
     }
 

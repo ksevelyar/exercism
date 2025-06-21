@@ -5,6 +5,12 @@ pub struct School {
     students: BTreeMap<u32, BTreeSet<String>>,
 }
 
+impl Default for School {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl School {
     pub fn new() -> School {
         School {

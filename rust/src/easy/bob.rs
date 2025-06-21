@@ -1,6 +1,6 @@
 fn is_yell(message: &str) -> bool {
-    let is_contain_uppercase = message.chars().any(|c| matches!(c, 'A'..='Z'));
-    let is_contain_lowercase = message.chars().any(|c| matches!(c, 'a'..='z'));
+    let is_contain_uppercase = message.chars().any(|c| c.is_ascii_uppercase());
+    let is_contain_lowercase = message.chars().any(|c| c.is_ascii_lowercase());
 
     is_contain_uppercase && !is_contain_lowercase
 }

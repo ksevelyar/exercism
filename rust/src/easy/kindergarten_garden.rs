@@ -9,7 +9,7 @@ pub fn plants(diagram: &str, student: &str) -> Vec<&'static str> {
 
     diagram
         .lines()
-        .flat_map(|line| (line[start..=end]).chars().map(|ch| char_to_plant(ch)))
+        .flat_map(|line| (line[start..=end]).chars().map(char_to_plant))
         .collect()
 }
 

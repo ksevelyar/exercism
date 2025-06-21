@@ -16,8 +16,8 @@ impl Decimal {
             Some((a, b)) => {
                 let b_exp = b.chars().count();
                 let exp = match a {
-                    "0" => BigInt::try_from(10u32).unwrap().pow(b_exp as u32),
-                    _ => BigInt::try_from(10u32).unwrap().pow(b_exp as u32),
+                    "0" => BigInt::from(10u32).pow(b_exp as u32),
+                    _ => BigInt::from(10u32).pow(b_exp as u32),
                 };
 
                 (a.parse().ok()?, b.parse().ok()?, exp)
@@ -25,7 +25,7 @@ impl Decimal {
             None => (
                 input.parse().ok()?,
                 BigInt::default(),
-                BigInt::try_from(1u32).unwrap(),
+                BigInt::from(1u32),
             ),
         };
 

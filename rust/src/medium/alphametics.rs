@@ -6,12 +6,11 @@ struct Puzzle<'a> {
     result: &'a str,
 }
 
-impl<'a> Puzzle<'a> {
+impl Puzzle<'_> {
     fn build(input: &str) -> Option<Puzzle> {
         let sum_and_result: Vec<&str> = input.split(" == ").collect();
 
-        let sum = sum_and_result
-            .get(0)?
+        let sum = sum_and_result.first()?
             .split(" + ")
             .map(|word| word.chars().rev().collect())
             .collect();
@@ -22,7 +21,7 @@ impl<'a> Puzzle<'a> {
     }
 }
 
-fn combinations(n: usize) {
+fn combinations(_n: usize) {
     todo!()
 }
 
@@ -30,7 +29,7 @@ pub fn solve(input: &str) -> Option<HashMap<char, u8>> {
     let puzzle = Puzzle::build(input)?;
     dbg!(&puzzle);
 
-    let chars: HashSet<char> = input
+    let _chars: HashSet<char> = input
         .chars()
         .filter(|char| char.is_ascii_alphabetic())
         .collect();

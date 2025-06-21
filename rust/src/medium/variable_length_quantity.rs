@@ -14,7 +14,7 @@ fn u32_to_vlq(num: u32) -> Vec<u8> {
     }
 
     let values = (0..=4)
-        .map(|ind| ((num >> 7 * ind) & 0b1111111) as u8)
+        .map(|ind| ((num >> (7 * ind)) & 0b1111111) as u8)
         .rev()
         .skip_while(|n| *n == 0);
     let max_ind = values.clone().count() - 1;
@@ -45,10 +45,8 @@ fn vlq_to_u32(bytes: &[u8]) -> Result<u32, Error> {
     if bytes.len() > max_vlq_bytes_for_u32 {
         return Err(Error::Overflow);
     };
-    if bytes.len() == max_vlq_bytes_for_u32 {
-        if (bytes[0] & 0b01110000) != 0 {
-            return Err(Error::Overflow);
-        }
+    if bytes.len() == max_vlq_bytes_for_u32 && (bytes[0] & 0b01110000) != 0 {
+        return Err(Error::Overflow);
     };
 
     let sum: u32 = bytes

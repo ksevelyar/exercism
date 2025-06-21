@@ -83,7 +83,7 @@ impl<T> SimpleLinkedList<T> {
     }
 
     pub fn peek(&self) -> Option<&T> {
-        Some(Self::recursive_peek(&*self.head.as_ref()?))
+        Some(Self::recursive_peek(self.head.as_ref()?))
     }
 
     pub fn rev(mut self) -> SimpleLinkedList<T> {

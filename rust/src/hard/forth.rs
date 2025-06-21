@@ -1,8 +1,8 @@
-pub type Value = i32;
-pub type Result = std::result::Result<(), Error>;
+use std::result::Result;
 
 pub struct Forth {
     stack: Vec<i32>,
+    definitions: Vec<String>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -13,25 +13,53 @@ pub enum Error {
     InvalidWord,
 }
 
+impl Default for Forth {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Forth {
     pub fn new() -> Forth {
-        Forth { stack: Vec::new() }
+        Forth {
+            stack: Vec::new(),
+            definitions: Vec::new(),
+        }
     }
 
-    pub fn stack(&self) -> &[Value] {
+    pub fn stack(&self) -> &[i32] {
         &self.stack
     }
 
-    pub fn eval(&mut self, input: &str) -> Result {
+    pub fn eval(&mut self, input: &str) -> Result<(), Error> {
+        if input.starts_with(": ") && input.ends_with(" ;") {
+            let inner = &input[2..input.len() - 2];
+            let mut parts = inner.split_whitespace();
+
+            let key = parts.next().ok_or(Error::InvalidWord)?;
+
+            if key.parse::<i32>().is_ok() {
+                return Err(Error::InvalidWord);
+            }
+
+            self.definitions.push(input.to_lowercase());
+            return Ok(());
+        }
+
         input
             .to_lowercase()
             .split_whitespace()
-            .try_for_each(|word| self.modify_stack(word))?;
+            .try_for_each(|word| {
+                self.eval_word(word, 0)
+                    .iter()
+                    .try_for_each(|word| self.modify_stack(word))?;
+                Ok(())
+            })?;
 
         Ok(())
     }
 
-    fn modify_stack(&mut self, word: &str) -> Result {
+    fn modify_stack(&mut self, word: &str) -> Result<(), Error> {
         if let Ok(num) = word.parse::<i32>() {
             self.stack.push(num);
             return Ok(());
@@ -60,14 +88,13 @@ impl Forth {
                 Ok(())
             }
             "/" => {
-                let num1 = self.pop()?;
-                if num1 == 0 {
+                let divisor = self.pop()?;
+                if divisor == 0 {
                     return Err(Error::DivisionByZero);
                 }
+                let dividend = self.pop()?;
 
-                let num2 = self.pop()?;
-
-                self.stack.push(num2 / num1);
+                self.stack.push(dividend / divisor);
                 Ok(())
             }
             "drop" => {
@@ -75,11 +102,12 @@ impl Forth {
                 Ok(())
             }
             "swap" => {
-                let num1 = self.pop()?;
-                let num2 = self.pop()?;
+                let len = self.stack.len();
+                if len < 2 {
+                    return Err(Error::StackUnderflow);
+                }
 
-                self.stack.push(num1);
-                self.stack.push(num2);
+                self.stack.swap(len - 2, len - 1);
                 Ok(())
             }
             "dup" => {
@@ -102,11 +130,41 @@ impl Forth {
         }
     }
 
-    fn pop(&mut self) -> std::result::Result<i32, Error> {
-        match self.stack.pop() {
-            Some(num) => Ok(num),
-            _ => Err(Error::StackUnderflow),
+    fn eval_word(&mut self, word: &str, shift: usize) -> Vec<String> {
+        let result = self
+            .definitions
+            .iter()
+            .enumerate()
+            .rev()
+            .skip(shift)
+            .find_map(|(index, definition)| {
+                let inner = &definition[2..definition.len() - 2];
+                let mut parts = inner.split_whitespace();
+
+                let definition_key = parts.next().unwrap();
+
+                if definition_key == word {
+                    Some((index, parts.map(|x| x.to_string()).collect::<Vec<_>>()))
+                } else {
+                    None
+                }
+            });
+
+        if result.is_none() {
+            return vec![word.to_string()];
         }
+
+        let (new_shift, values) = result.unwrap();
+        let new_values = values
+            .iter()
+            .flat_map(|word| self.eval_word(word, shift + new_shift))
+            .collect();
+
+        new_values
+    }
+
+    fn pop(&mut self) -> Result<i32, Error> {
+        self.stack.pop().ok_or(Error::StackUnderflow)
     }
 }
 
@@ -226,7 +284,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn can_consist_of_built_in_words() {
         let mut f = Forth::new();
 
@@ -238,7 +295,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn execute_in_the_right_order() {
         let mut f = Forth::new();
 
@@ -250,7 +306,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn can_override_other_user_defined_words() {
         let mut f = Forth::new();
 
@@ -264,7 +319,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn can_override_built_in_words() {
         let mut f = Forth::new();
 
@@ -276,7 +330,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn can_override_built_in_operators() {
         let mut f = Forth::new();
 
@@ -288,7 +341,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn can_use_different_words_with_the_same_name() {
         let mut f = Forth::new();
 
@@ -304,7 +356,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn can_define_word_that_uses_word_with_the_same_name() {
         let mut f = Forth::new();
 
@@ -318,7 +369,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn cannot_redefine_non_negative_numbers() {
         let mut f = Forth::new();
 
@@ -326,7 +376,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn cannot_redefine_negative_numbers() {
         let mut f = Forth::new();
 
@@ -341,7 +390,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn only_defines_locally() {
         let mut f = Forth::new();
 
@@ -356,5 +404,16 @@ mod tests {
         assert!(f.eval("1 1 +").is_ok());
 
         assert_eq!(f.stack(), [2]);
+    }
+
+    #[test]
+    fn definitions_are_case_insensitive() {
+        let mut f = Forth::new();
+
+        assert!(f.eval(": SWAP DUP Dup dup ;").is_ok());
+
+        assert!(f.eval("1 swap").is_ok());
+
+        assert_eq!(f.stack(), [1, 1, 1, 1]);
     }
 }

@@ -26,6 +26,12 @@ pub struct Iter<'a, T> {
     _list: &'a LinkedList<T>,
 }
 
+impl<T> Default for LinkedList<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T> LinkedList<T> {
     pub fn new() -> Self {
         Self {

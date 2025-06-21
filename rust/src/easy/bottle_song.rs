@@ -2,7 +2,7 @@ pub fn recite(start_bottles: u32, take_down: u32) -> String {
     (1..=start_bottles)
         .rev()
         .take(take_down as usize)
-        .map(|i| make_verse(i))
+        .map(make_verse)
         .collect::<Vec<_>>()
         .join("\n")
 }
