@@ -18,8 +18,8 @@ impl Default for Robot {
 impl Robot {
     fn random_name() -> String {
         let mut rng = rand::thread_rng();
-        let letter_1: char = rng.gen_range(b'A'..b'Z') as char;
-        let letter_2: char = rng.gen_range(b'A'..b'Z') as char;
+        let letter_1: char = rng.gen_range(b'A'..=b'Z') as char;
+        let letter_2: char = rng.gen_range(b'A'..=b'Z') as char;
         let number: u32 = rng.gen_range(0..999);
 
         format!("{}{}{:03}", letter_1, letter_2, number)

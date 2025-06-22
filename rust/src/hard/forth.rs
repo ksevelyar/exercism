@@ -1,5 +1,3 @@
-use std::result::Result;
-
 pub struct Forth {
     stack: Vec<i32>,
     definitions: Vec<String>,
@@ -155,12 +153,10 @@ impl Forth {
         }
 
         let (new_shift, values) = result.unwrap();
-        let new_values = values
+        values
             .iter()
             .flat_map(|word| self.eval_word(word, shift + new_shift))
-            .collect();
-
-        new_values
+            .collect()
     }
 
     fn pop(&mut self) -> Result<i32, Error> {

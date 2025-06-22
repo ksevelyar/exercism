@@ -5,3 +5,4 @@ pub mod macros;
 pub mod parallel_letter_frequency;
 pub mod poker;
 pub mod xorcism;
+pub mod react;

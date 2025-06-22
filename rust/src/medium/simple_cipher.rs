@@ -49,7 +49,7 @@ fn rotate(key: &str, message: &str, forward: bool) -> Option<String> {
 }
 
 fn random_key(len: usize) -> String {
-    from_fn(|| Some(rand::thread_rng().gen_range(b'a'..b'z') as char))
+    from_fn(|| Some(rand::thread_rng().gen_range(b'a'..=b'z') as char))
         .take(len)
         .collect()
 }
