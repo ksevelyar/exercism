@@ -1,6 +1,6 @@
 /// `InputCellId` is a unique identifier for an input cell.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct InputCellId();
+pub struct InputCellId(usize);
 /// `ComputeCellId` is a unique identifier for a compute cell.
 /// Values of type `InputCellId` and `ComputeCellId` should not be mutually assignable,
 /// demonstrated by the following tests:
@@ -15,8 +15,10 @@ pub struct InputCellId();
 /// let input = r.create_input(111);
 /// let compute: react::InputCellId = r.create_compute(&[react::CellId::Input(input)], |_| 222).unwrap();
 /// ```
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ComputeCellId();
+pub struct ComputeCellId(usize);
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct CallbackId();
 
@@ -33,9 +35,8 @@ pub enum RemoveCallbackError {
 }
 
 pub struct Reactor<T> {
-    // Just so that the compiler doesn't complain about an unused type parameter.
-    // You probably want to delete this field.
-    dummy: ::std::marker::PhantomData<T>,
+    values: Vec<(CellId, T)>,
+    next_cell_id: usize,
 }
 
 // You are guaranteed that Reactor will only be tested against types that are Copy + PartialEq.
@@ -47,12 +48,20 @@ impl<T: Copy + PartialEq> Default for Reactor<T> {
 
 impl<T: Copy + PartialEq> Reactor<T> {
     pub fn new() -> Self {
-        todo!()
+        Self {
+            values: Vec::new(),
+            next_cell_id: 1,
+        }
     }
 
     // Creates an input cell with the specified initial value, returning its ID.
-    pub fn create_input(&mut self, _initial: T) -> InputCellId {
-        todo!()
+    pub fn create_input(&mut self, initial: T) -> InputCellId {
+        let input = InputCellId(self.next_cell_id);
+
+        self.values.push((CellId::Input(input), initial));
+        self.next_cell_id += 1;
+
+        input
     }
 
     // Creates a compute cell with the specified dependencies and compute function.
@@ -70,33 +79,49 @@ impl<T: Copy + PartialEq> Reactor<T> {
     // time they will continue to exist as long as the Reactor exists.
     pub fn create_compute<F: Fn(&[T]) -> T>(
         &mut self,
-        _dependencies: &[CellId],
-        _compute_func: F,
+        dependencies: &[CellId],
+        compute_func: F,
     ) -> Result<ComputeCellId, CellId> {
-        todo!()
+        let input = ComputeCellId(self.next_cell_id);
+        let values: Result<Vec<T>, CellId> = dependencies
+            .iter()
+            .map(|&dep_id| self.value(dep_id).ok_or(dep_id))
+            .collect();
+
+        let computed = compute_func(&values?);
+
+        self.values.push((CellId::Compute(input), computed));
+        // FIXME
+        // self.values.push((CellId::Compute(input), computed, dependencies));
+        self.next_cell_id += 1;
+
+        Ok(input)
     }
 
     // Retrieves the current value of the cell, or None if the cell does not exist.
-    //
-    // You may wonder whether it is possible to implement `get(&self, id: CellId) -> Option<&Cell>`
-    // and have a `value(&self)` method on `Cell`.
-    //
-    // It turns out this introduces a significant amount of extra complexity to this exercise.
-    // We chose not to cover this here, since this exercise is probably enough work as-is.
     pub fn value(&self, id: CellId) -> Option<T> {
-        todo!("Get the value of the cell whose id is {id:?}")
+        self.values.iter().find_map(
+            |(cell_id, value)| {
+                if *cell_id == id { Some(*value) } else { None }
+            },
+        )
     }
 
     // Sets the value of the specified input cell.
-    //
     // Returns false if the cell does not exist.
-    //
-    // Similarly, you may wonder about `get_mut(&mut self, id: CellId) -> Option<&mut Cell>`, with
-    // a `set_value(&mut self, new_value: T)` method on `Cell`.
-    //
-    // As before, that turned out to add too much extra complexity.
-    pub fn set_value(&mut self, _id: InputCellId, _new_value: T) -> bool {
-        todo!()
+    pub fn set_value(&mut self, id: InputCellId, new_value: T) -> bool {
+        let cell = self
+            .values
+            .iter_mut()
+            .find(|(cell_id, _value)| *cell_id == CellId::Input(id));
+
+        if let Some(cell) = cell {
+            *cell = (CellId::Input(id), new_value);
+
+            true
+        } else {
+            false
+        }
     }
 
     // Adds a callback to the specified compute cell.
@@ -140,12 +165,44 @@ mod tests {
     use super::*;
 
     #[test]
-    #[ignore]
     fn input_cells_have_a_value() {
         let mut reactor = Reactor::new();
 
         let input = reactor.create_input(10);
 
         assert_eq!(reactor.value(CellId::Input(input)), Some(10));
+    }
+
+    #[test]
+    fn an_input_cells_value_can_be_set() {
+        let mut reactor = Reactor::new();
+
+        let input = reactor.create_input(4);
+
+        assert!(reactor.set_value(input, 20));
+
+        assert_eq!(reactor.value(CellId::Input(input)), Some(20));
+    }
+
+    #[test]
+    fn error_setting_a_nonexistent_input_cell() {
+        let mut dummy_reactor = Reactor::new();
+
+        let input = dummy_reactor.create_input(1);
+
+        assert!(!Reactor::new().set_value(input, 0));
+    }
+
+    #[test]
+    fn compute_cells_calculate_initial_value() {
+        let mut reactor = Reactor::new();
+
+        let input = reactor.create_input(1);
+
+        let output = reactor
+            .create_compute(&[CellId::Input(input)], |v| v[0] + 1)
+            .unwrap();
+
+        assert_eq!(reactor.value(CellId::Compute(output)), Some(2));
     }
 }
