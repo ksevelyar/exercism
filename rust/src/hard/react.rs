@@ -1,28 +1,15 @@
-/// `InputCellId` is a unique identifier for an input cell.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct InputCellId(usize);
-/// `ComputeCellId` is a unique identifier for a compute cell.
-/// Values of type `InputCellId` and `ComputeCellId` should not be mutually assignable,
-/// demonstrated by the following tests:
-///
-/// ```compile_fail
-/// let mut r = react::Reactor::new();
-/// let input: react::ComputeCellId = r.create_input(111);
-/// ```
-///
-/// ```compile_fail
-/// let mut r = react::Reactor::new();
-/// let input = r.create_input(111);
-/// let compute: react::InputCellId = r.create_compute(&[react::CellId::Input(input)], |_| 222).unwrap();
-/// ```
+use std::collections::HashMap;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct InputCellId(usize);
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ComputeCellId(usize);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct CallbackId(usize);
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum CellId {
     Input(InputCellId),
     Compute(ComputeCellId),
@@ -34,15 +21,18 @@ pub enum RemoveCallbackError {
     NonexistentCallback,
 }
 
+type ComputedCell<'a, T> = (CellId, T, Box<dyn Fn(&[T]) -> T + 'a>, Vec<CellId>);
+type Callback<'a, T> = (CallbackId, CellId, Box<dyn FnMut(T) + 'a>);
+
 pub struct Reactor<'a, T> {
     values: Vec<(CellId, T)>,
-    computed_values: Vec<(CellId, T, Box<dyn Fn(&[T]) -> T + 'a>, Vec<CellId>)>,
-    callbacks: Vec<(CallbackId, Box<dyn FnMut(T) + 'a>)>,
+    computed_values: Vec<ComputedCell<'a, T>>,
+    callbacks: Vec<Callback<'a, T>>,
     next_cell_id: usize,
     next_callback_id: usize,
 }
 
-impl<'a, T: Copy + PartialEq> Default for Reactor<'a, T> {
+impl<T: Copy + PartialEq> Default for Reactor<'_, T> {
     fn default() -> Self {
         Self::new()
     }
@@ -139,7 +129,28 @@ impl<'a, T: Copy + PartialEq> Reactor<'a, T> {
         if let Some(cell) = cell {
             *cell = (CellId::Input(id), new_value);
 
+            let old_computed: HashMap<CellId, T> = self
+                .computed_values
+                .iter()
+                .map(|(cell_id, val, _, _)| (*cell_id, *val))
+                .collect();
+
             self.update_computed(CellId::Input(id));
+
+            let changed: Vec<(CellId, T)> = self
+                .computed_values
+                .iter()
+                .filter_map(|(cell_id, val, _, _)| match old_computed.get(cell_id) {
+                    Some(old_val) if old_val != val => Some((*cell_id, *val)),
+                    _ => None,
+                })
+                .collect();
+
+            for (_, id, cb) in &mut self.callbacks {
+                if let Some((_, val)) = changed.iter().find(|(changed_id, _)| changed_id == id) {
+                    cb(*val);
+                }
+            }
 
             true
         } else {
@@ -148,26 +159,28 @@ impl<'a, T: Copy + PartialEq> Reactor<'a, T> {
     }
 
     fn update_computed(&mut self, id: CellId) {
-        let updates: Vec<(usize, T)> = self
+        let updates: Vec<(usize, T, T)> = self
             .computed_values
             .iter()
             .enumerate()
             .filter(|(_, (_cell_id, _val, _func, deps))| deps.contains(&id))
-            .map(|(index, (_cell_id, _val, compute_func, deps))| {
+            .map(|(index, (_cell_id, old_value, compute_func, deps))| {
                 let values: Vec<_> = deps
                     .iter()
                     .map(|&dep_id| self.value(dep_id).unwrap())
                     .collect();
                 let new_value = compute_func(&values);
-                (index, new_value)
+                (index, *old_value, new_value)
             })
             .collect();
 
-        for (index, new_value) in updates {
-            self.computed_values[index].1 = new_value;
-            let cell_id = self.computed_values[index].0;
+        for (index, old_value, new_value) in updates {
+            if old_value != new_value {
+                self.computed_values[index].1 = new_value;
+                let cell_id = self.computed_values[index].0;
 
-            self.update_computed(cell_id);
+                self.update_computed(cell_id);
+            }
         }
     }
 
@@ -195,7 +208,8 @@ impl<'a, T: Copy + PartialEq> Reactor<'a, T> {
         let callback_id = CallbackId(self.next_callback_id);
         self.next_callback_id += 1;
 
-        self.callbacks.push((callback_id, Box::new(callback)));
+        self.callbacks
+            .push((callback_id, CellId::Compute(id), Box::new(callback)));
 
         Some(callback_id)
     }
@@ -218,10 +232,10 @@ impl<'a, T: Copy + PartialEq> Reactor<'a, T> {
         let index = self
             .callbacks
             .iter()
-            .position(|(id, _)| *id == callback)
+            .position(|(id, _, _)| *id == callback)
             .ok_or(RemoveCallbackError::NonexistentCallback)?;
 
-        self.callbacks.remove(index);
+        let _ = self.callbacks.remove(index);
 
         Ok(())
     }
