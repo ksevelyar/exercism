@@ -20,7 +20,7 @@ pub struct InputCellId(usize);
 pub struct ComputeCellId(usize);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct CallbackId();
+pub struct CallbackId(usize);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CellId {
@@ -36,6 +36,7 @@ pub enum RemoveCallbackError {
 
 pub struct Reactor<T> {
     values: Vec<(CellId, T)>,
+    computed_values: Vec<(CellId, T, Box<dyn Fn(&[T]) -> T>, Vec<CellId>)>,
     next_cell_id: usize,
 }
 
@@ -50,6 +51,7 @@ impl<T: Copy + PartialEq> Reactor<T> {
     pub fn new() -> Self {
         Self {
             values: Vec::new(),
+            computed_values: Vec::new(),
             next_cell_id: 1,
         }
     }
@@ -77,7 +79,7 @@ impl<T: Copy + PartialEq> Reactor<T> {
     // Notice that there is no way to *remove* a cell.
     // This means that you may assume, without checking, that if the dependencies exist at creation
     // time they will continue to exist as long as the Reactor exists.
-    pub fn create_compute<F: Fn(&[T]) -> T>(
+    pub fn create_compute<F: Fn(&[T]) -> T + 'static>(
         &mut self,
         dependencies: &[CellId],
         compute_func: F,
@@ -90,9 +92,12 @@ impl<T: Copy + PartialEq> Reactor<T> {
 
         let computed = compute_func(&values?);
 
-        self.values.push((CellId::Compute(input), computed));
-        // FIXME
-        // self.values.push((CellId::Compute(input), computed, dependencies));
+        self.computed_values.push((
+            CellId::Compute(input),
+            computed,
+            Box::new(compute_func),
+            dependencies.to_owned(),
+        ));
         self.next_cell_id += 1;
 
         Ok(input)
@@ -100,11 +105,24 @@ impl<T: Copy + PartialEq> Reactor<T> {
 
     // Retrieves the current value of the cell, or None if the cell does not exist.
     pub fn value(&self, id: CellId) -> Option<T> {
-        self.values.iter().find_map(
-            |(cell_id, value)| {
-                if *cell_id == id { Some(*value) } else { None }
-            },
-        )
+        match id {
+            CellId::Input(_) => {
+                self.values.iter().find_map(
+                    |(cell_id, value)| {
+                        if *cell_id == id { Some(*value) } else { None }
+                    },
+                )
+            }
+            CellId::Compute(_) => {
+                self.computed_values
+                    .iter()
+                    .find_map(
+                        |(cell_id, value, _fun, _deps)| {
+                            if *cell_id == id { Some(*value) } else { None }
+                        },
+                    )
+            }
+        }
     }
 
     // Sets the value of the specified input cell.
@@ -118,9 +136,35 @@ impl<T: Copy + PartialEq> Reactor<T> {
         if let Some(cell) = cell {
             *cell = (CellId::Input(id), new_value);
 
+            self.update_computed(CellId::Input(id));
+
             true
         } else {
             false
+        }
+    }
+
+    fn update_computed(&mut self, id: CellId) {
+        let updates: Vec<(usize, T)> = self
+            .computed_values
+            .iter()
+            .enumerate()
+            .filter(|(_, (_cell_id, _val, _func, deps))| deps.contains(&id))
+            .map(|(index, (_cell_id, _val, compute_func, deps))| {
+                let values: Vec<_> = deps
+                    .iter()
+                    .map(|&dep_id| self.value(dep_id).unwrap())
+                    .collect();
+                let new_value = compute_func(&values);
+                (index, new_value)
+            })
+            .collect();
+
+        for (index, new_value) in updates {
+            self.computed_values[index].1 = new_value;
+            let cell_id = self.computed_values[index].0;
+
+            self.update_computed(cell_id);
         }
     }
 
@@ -204,5 +248,101 @@ mod tests {
             .unwrap();
 
         assert_eq!(reactor.value(CellId::Compute(output)), Some(2));
+    }
+
+    #[test]
+    fn compute_cells_take_inputs_in_the_right_order() {
+        let mut reactor = Reactor::new();
+
+        let one = reactor.create_input(1);
+
+        let two = reactor.create_input(2);
+
+        let output = reactor
+            .create_compute(&[CellId::Input(one), CellId::Input(two)], |v| {
+                v[0] + v[1] * 10
+            })
+            .unwrap();
+
+        assert_eq!(reactor.value(CellId::Compute(output)), Some(21));
+    }
+
+    #[test]
+    fn error_creating_compute_cell_if_input_doesnt_exist() {
+        let mut dummy_reactor = Reactor::new();
+
+        let input = dummy_reactor.create_input(1);
+
+        assert_eq!(
+            Reactor::new().create_compute(&[CellId::Input(input)], |_| 0),
+            Err(CellId::Input(input))
+        );
+    }
+
+    #[test]
+    fn do_not_break_cell_if_creating_compute_cell_with_valid_and_invalid_input() {
+        let mut dummy_reactor = Reactor::new();
+
+        let _ = dummy_reactor.create_input(1);
+
+        let dummy_cell = dummy_reactor.create_input(2);
+
+        let mut reactor = Reactor::new();
+
+        let input = reactor.create_input(1);
+
+        assert_eq!(
+            reactor.create_compute(&[CellId::Input(input), CellId::Input(dummy_cell)], |_| 0),
+            Err(CellId::Input(dummy_cell))
+        );
+
+        assert!(reactor.set_value(input, 5));
+
+        assert_eq!(reactor.value(CellId::Input(input)), Some(5));
+    }
+
+    #[test]
+    fn compute_cells_update_value_when_dependencies_are_changed() {
+        let mut reactor = Reactor::new();
+
+        let input = reactor.create_input(1);
+
+        let output = reactor
+            .create_compute(&[CellId::Input(input)], |v| v[0] + 1)
+            .unwrap();
+
+        assert_eq!(reactor.value(CellId::Compute(output)), Some(2));
+
+        assert!(reactor.set_value(input, 3));
+
+        assert_eq!(reactor.value(CellId::Compute(output)), Some(4));
+    }
+
+    #[test]
+    fn compute_cells_can_depend_on_other_compute_cells() {
+        let mut reactor = Reactor::new();
+
+        let input = reactor.create_input(1);
+
+        let times_two = reactor
+            .create_compute(&[CellId::Input(input)], |v| v[0] * 2)
+            .unwrap();
+
+        let times_thirty = reactor
+            .create_compute(&[CellId::Input(input)], |v| v[0] * 30)
+            .unwrap();
+
+        let output = reactor
+            .create_compute(
+                &[CellId::Compute(times_two), CellId::Compute(times_thirty)],
+                |v| v[0] + v[1],
+            )
+            .unwrap();
+
+        assert_eq!(reactor.value(CellId::Compute(output)), Some(32));
+
+        assert!(reactor.set_value(input, 3));
+
+        assert_eq!(reactor.value(CellId::Compute(output)), Some(96));
     }
 }
