@@ -34,25 +34,28 @@ pub enum RemoveCallbackError {
     NonexistentCallback,
 }
 
-pub struct Reactor<T> {
+pub struct Reactor<'a, T> {
     values: Vec<(CellId, T)>,
-    computed_values: Vec<(CellId, T, Box<dyn Fn(&[T]) -> T>, Vec<CellId>)>,
+    computed_values: Vec<(CellId, T, Box<dyn Fn(&[T]) -> T + 'a>, Vec<CellId>)>,
+    callbacks: Vec<(CallbackId, Box<dyn FnMut(T) + 'a>)>,
     next_cell_id: usize,
+    next_callback_id: usize,
 }
 
-// You are guaranteed that Reactor will only be tested against types that are Copy + PartialEq.
-impl<T: Copy + PartialEq> Default for Reactor<T> {
+impl<'a, T: Copy + PartialEq> Default for Reactor<'a, T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T: Copy + PartialEq> Reactor<T> {
+impl<'a, T: Copy + PartialEq> Reactor<'a, T> {
     pub fn new() -> Self {
         Self {
+            callbacks: Vec::new(),
             values: Vec::new(),
             computed_values: Vec::new(),
             next_cell_id: 1,
+            next_callback_id: 1,
         }
     }
 
@@ -79,7 +82,7 @@ impl<T: Copy + PartialEq> Reactor<T> {
     // Notice that there is no way to *remove* a cell.
     // This means that you may assume, without checking, that if the dependencies exist at creation
     // time they will continue to exist as long as the Reactor exists.
-    pub fn create_compute<F: Fn(&[T]) -> T + 'static>(
+    pub fn create_compute<F: Fn(&[T]) -> T + 'a>(
         &mut self,
         dependencies: &[CellId],
         compute_func: F,
@@ -180,12 +183,21 @@ impl<T: Copy + PartialEq> Reactor<T> {
     // * Exactly once if the compute cell's value changed as a result of the set_value call.
     //   The value passed to the callback should be the final value of the compute cell after the
     //   set_value call.
-    pub fn add_callback<F: FnMut(T)>(
+    pub fn add_callback<F: FnMut(T) + 'a>(
         &mut self,
-        _id: ComputeCellId,
-        _callback: F,
+        id: ComputeCellId,
+        callback: F,
     ) -> Option<CallbackId> {
-        todo!()
+        self.computed_values
+            .iter()
+            .find(|(cell_id, _val, _func, _deps)| *cell_id == CellId::Compute(id))?;
+
+        let callback_id = CallbackId(self.next_callback_id);
+        self.next_callback_id += 1;
+
+        self.callbacks.push((callback_id, Box::new(callback)));
+
+        Some(callback_id)
     }
 
     // Removes the specified callback, using an ID returned from add_callback.
@@ -198,9 +210,20 @@ impl<T: Copy + PartialEq> Reactor<T> {
         cell: ComputeCellId,
         callback: CallbackId,
     ) -> Result<(), RemoveCallbackError> {
-        todo!(
-            "Remove the callback identified by the CallbackId {callback:?} from the cell {cell:?}"
-        )
+        self.computed_values
+            .iter()
+            .position(|(id, _, _, _)| *id == CellId::Compute(cell))
+            .ok_or(RemoveCallbackError::NonexistentCell)?;
+
+        let index = self
+            .callbacks
+            .iter()
+            .position(|(id, _)| *id == callback)
+            .ok_or(RemoveCallbackError::NonexistentCallback)?;
+
+        self.callbacks.remove(index);
+
+        Ok(())
     }
 }
 
