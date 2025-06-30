@@ -10,7 +10,8 @@ impl Puzzle<'_> {
     fn build(input: &str) -> Option<Puzzle> {
         let sum_and_result: Vec<&str> = input.split(" == ").collect();
 
-        let sum = sum_and_result.first()?
+        let sum = sum_and_result
+            .first()?
             .split(" + ")
             .map(|word| word.chars().rev().collect())
             .collect();

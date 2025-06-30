@@ -22,11 +22,7 @@ impl Decimal {
 
                 (a.parse().ok()?, b.parse().ok()?, exp)
             }
-            None => (
-                input.parse().ok()?,
-                BigInt::default(),
-                BigInt::from(1u32),
-            ),
+            None => (input.parse().ok()?, BigInt::default(), BigInt::from(1u32)),
         };
 
         let sum = match input.starts_with('-') {
